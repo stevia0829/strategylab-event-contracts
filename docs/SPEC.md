@@ -1,0 +1,344 @@
+# StrategyLab Product and Engineering Spec
+
+Status: Draft v0.2  
+Last updated: 2026-08-24  
+Target: Somnia × DreamDEX Event Contracts Hackathon
+
+## 1. Product definition
+
+StrategyLab is a low-code strategy validation and safe-deployment workspace for binary BTC/ETH Event Contracts. It turns a strategy idea into a reproducible experiment, detects false confidence, proposes evidence-based changes, and only permits a Somnia testnet dry-run after deterministic validation gates pass.
+
+```text
+Low-code strategy
+  → Strategy IR
+  → Event Contract backtest
+  → Evaluation Skills
+  → Findings
+  → Memory-assisted candidate generation
+  → Frozen holdout validation
+  → DreamDEX testnet dry-run
+```
+
+## 2. Target user and core job
+
+Primary user: someone who understands basic trading indicators but cannot safely implement, test, and deploy an Event Contract bot.
+
+Core job:
+
+> Help me determine whether my strategy result is believable, show exactly what is wrong, propose a controlled improvement, and prevent unsafe deployment.
+
+## 3. Hackathon scope
+
+### Required
+
+- Four-action low-code builder;
+- versioned Strategy IR;
+- DreamDEX Event Contract market integration;
+- deterministic backtest or historical replay with explicit data provenance;
+- at least three real evaluation Skills;
+- baseline and candidate strategy versions;
+- frozen holdout validation;
+- DreamDEX Shannon testnet dry-run and at least one verified transaction;
+- GitHub repository and 2–3 minute demo.
+
+### Explicitly deferred
+
+- arbitrary user Python execution;
+- mainnet and real-fund automation;
+- unrestricted parameter optimization;
+- multi-chain support;
+- multi-user collaboration;
+- strategy marketplace.
+
+## 4. Low-code interaction
+
+The main path must remain understandable without documentation:
+
+1. **Choose market** — BTC/ETH and an available DreamDEX contract window.
+2. **Compose signal** — one signal condition and one optional market filter.
+3. **Set risk** — direction, stake, maximum consecutive loss, and cooldown.
+4. **Evaluate** — run the strategy and receive a verdict, reasons, evidence, and next action.
+
+The MVP does not use a free-form drag canvas. Strategy IR and methodology are available through expandable technical details.
+
+## 5. Strategy IR
+
+Minimum representation:
+
+```json
+{
+  "schema_version": "1.0",
+  "strategy_id": "rsi-reversal",
+  "universe": {
+    "underlying": "BTC",
+    "interval_sec": 900
+  },
+  "features": [
+    {"id": "rsi14", "type": "RSI", "period": 14},
+    {"id": "vol20", "type": "VOLATILITY", "period": 20}
+  ],
+  "decision": {
+    "when": {"all": [
+      {"left": "rsi14", "op": "<", "right": 38},
+      {"left": "vol20", "op": "<", "right": 0.038}
+    ]},
+    "action": "UP"
+  },
+  "risk": {
+    "stake_usdso": 10,
+    "max_consecutive_losses": 4,
+    "cooldown_windows": 2
+  }
+}
+```
+
+Every version also stores its parent, structured diff, change reason, author, data snapshot, engine version, Skill versions, assumptions, random seed, metrics, and validation state.
+
+## 6. Evaluation Skill contract
+
+Each Skill is versioned and deterministic when its method permits it.
+
+```json
+{
+  "skill_id": "profit-concentration",
+  "skill_version": "1.0.0",
+  "status": "FAIL",
+  "severity": "HIGH",
+  "confidence": 0.91,
+  "finding": "Top 3 trades contribute 68% of profit",
+  "evidence": {"trade_ids": [8, 31, 54], "profit_share": 0.68},
+  "methodology": "Top-N contribution and leave-best-out",
+  "next_actions": ["REQUIRE_HOLDOUT", "EXPAND_SAMPLE"]
+}
+```
+
+Allowed statuses: `PASS`, `WARN`, `FAIL`, `INSUFFICIENT_EVIDENCE`, `NOT_APPLICABLE`, `INVALID`.
+
+### Skill execution order
+
+1. Data integrity: `temporal-integrity`;
+2. venue realism: `market-state`, `execution-realism`, `expiry-awareness`;
+3. evidence quality: `minimum-sample`, `profit-concentration`;
+4. robustness and risk: `risk-profile`, `parameter-stability`, later `regime-slicing`;
+5. deployment: `deployment-readiness`.
+
+If data integrity is `FAIL` or `INVALID`, profitability and optimization results are invalidated. Do not generate parameter patches until the data issue is fixed.
+
+### Hackathon Skills
+
+P0 implementation:
+
+- `temporal-integrity`;
+- `risk-profile`;
+- `profit-concentration`;
+- `market-state`;
+- `deployment-readiness`.
+
+P1 additions:
+
+- `probability-edge`;
+- `expiry-awareness`;
+- `quote-liquidity`;
+- `parameter-stability`;
+- `regime-slicing`;
+- `counterfactual-risk`.
+
+## 7. Analysis result presentation
+
+Results use progressive disclosure:
+
+### Layer 1 — Verdict
+
+- one plain-language conclusion;
+- final state: `INVALID`, `NEEDS_WORK`, `SANDBOX_ONLY`, or `TESTNET_READY`;
+- the single next best action;
+- no misleading compensating score for failed hard gates.
+
+### Layer 2 — Reasons
+
+- maximum three prioritized findings;
+- each shows severity, affected samples, financial/risk effect, and confidence;
+- show `INSUFFICIENT_EVIDENCE` rather than false precision.
+
+### Layer 3 — Evidence and methodology
+
+- affected market/trade IDs;
+- chart or regime slice;
+- Skill and methodology version;
+- assumptions and data provenance;
+- downloadable machine-readable report.
+
+Recommendations appear after findings. Each recommendation contains a Strategy IR JSON Patch, expected benefit, expected trade-off, related memory, and validation status.
+
+## 8. Agent Memory
+
+### Purpose
+
+Memory prevents the Coach from starting from zero and repeating rejected experiments. It records which changes were attempted, under which market conditions, why they succeeded or failed, and how strong the evidence was.
+
+Memory is advisory. A retrieved success may rank a Candidate higher, but cannot mark the current Candidate `VALIDATED`.
+
+### Memory types
+
+| Type | Content | Main use |
+|---|---|---|
+| Experiment Memory | version diff, findings, outcome, validation | avoid repeated experiments |
+| Market Regime Memory | volatility/trend/liquidity/expiry context | determine applicability |
+| Decision Memory | why a suggestion was proposed or rejected | explain Agent reasoning |
+| Safety Memory | leakage, risk breach, execution/receipt failure | prevent repeated hazards |
+
+### Memory record
+
+```json
+{
+  "memory_id": "mem_01J...",
+  "memory_type": "experiment",
+  "strategy_family": "rsi_reversal",
+  "market_context": {
+    "underlying": "BTC",
+    "interval_sec": 900,
+    "regime": "high_volatility",
+    "data_tier": "RECONSTRUCTED"
+  },
+  "trigger": {
+    "skill_id": "risk-profile",
+    "finding_code": "CONSECUTIVE_LOSS_REGIME"
+  },
+  "change": {
+    "type": "ADD_FILTER",
+    "strategy_ir_patch": [
+      {"op": "add", "path": "/decision/when/all/-", "value": {"left": "vol20", "op": "<", "right": 0.029}}
+    ]
+  },
+  "outcome": {
+    "max_drawdown_before": 0.284,
+    "max_drawdown_after": 0.171,
+    "expected_value_before": 0.18,
+    "expected_value_after": 0.24,
+    "coverage_delta": -0.18
+  },
+  "validation": {
+    "status": "VALIDATED",
+    "dataset_id": "holdout-2026-07",
+    "engine_version": "0.1.0",
+    "skills": {"risk-profile": "1.0.0"}
+  },
+  "created_at": "2026-08-24T00:00:00Z"
+}
+```
+
+### Retrieval
+
+MVP retrieval is deterministic and structured:
+
+1. filter by finding code, strategy family, underlying, interval, regime, and validation state;
+2. rank by context similarity, evidence quality, validation level, and recency;
+3. retrieve both successful and rejected experiments;
+4. show why each memory matched;
+5. create a new Candidate and rerun current validation.
+
+Suggested ranking:
+
+```text
+memory_score = context_similarity × evidence_quality × validation_weight × recency_weight
+```
+
+Do not use embeddings as the only retrieval method. SQLite structured queries are sufficient for the hackathon; semantic retrieval can be added later for free-text reasons.
+
+### Memory lifecycle and contamination controls
+
+- Separate `Candidate`, `Validated`, `Rejected`, `Invalid`, and `Stale` memories.
+- Never delete rejected experiments merely to improve the narrative.
+- Bind every memory to data snapshot, engine version, Skill version, and execution assumptions.
+- A lookahead-contaminated experiment becomes `Invalid` and cannot influence suggestions.
+- Do not transfer BTC 15m evidence directly to ETH 5m without an applicability warning.
+- Revalidate old memories after material market or methodology changes; mark stale rather than deleting.
+- Do not store wallet secrets, raw environment variables, personal financial data, or hidden chain credentials.
+
+### Suggested storage
+
+SQLite tables:
+
+```text
+strategies
+strategy_versions
+data_snapshots
+backtest_runs
+skill_runs
+findings
+recommendations
+validation_runs
+market_contexts
+agent_memories
+memory_links
+execution_records
+```
+
+`memory_links` connects a recommendation to the memories used, their scores, and the reason for retrieval. This creates an auditable Agent trace without storing hidden chain-of-thought.
+
+## 9. DreamDEX adapter requirements
+
+- Use Event Contract `ec-core` / Markets SDK rather than Spot Pool APIs.
+- Read `marketId`, `strike`, `intervalSec`, chain status, expiry, tick, lot, and order book.
+- Treat chain state as authoritative and indexer state as approximate.
+- Use integer tick/lot arithmetic; do not submit floating-point prices.
+- Set explicit expiry before market expiry.
+- Verify receipt status and expected events after writes.
+- Key state by `marketId`; pools can be reused.
+- Support claimable/finalized state and settlement claim.
+- Default to Shannon testnet and `DRY_RUN=true`.
+
+## 10. Acceptance scenarios
+
+### Scenario A — invalid data
+
+Temporal integrity detects future data. The run becomes `INVALID`; optimization and deployment remain unavailable; the UI recommends repairing data lineage.
+
+### Scenario B — memory-assisted improvement
+
+A baseline has excessive high-volatility losses. The Agent retrieves related successful and rejected experiments, explains the match, generates a volatility-filter JSON Patch, and creates a Candidate. Only current frozen-holdout validation can mark it `VALIDATED`.
+
+### Scenario C — trade-off rejection
+
+A candidate reduces drawdown but collapses coverage below the evidence guardrail. It is retained as `REJECTED` and cannot deploy.
+
+### Scenario D — testnet execution
+
+A validated candidate creates a dry-run preview, submits through a dedicated Shannon testnet wallet only after explicit user action, verifies receipt and Event logs, and stores a replayable execution record.
+
+## 11. Current implementation status
+
+| Component | Status |
+|---|---|
+| Static low-code UI | Done, prototype |
+| Strategy IR preview | Done, prototype |
+| Simulated metrics and Skills | Done, placeholder logic |
+| Candidate holdout interaction | Done, deterministic demo |
+| Result progressive disclosure | Next |
+| TypeScript application framework | Not started |
+| Persistent version/experiment store | Not started |
+| Agent Memory store and retrieval | Not started |
+| Real deterministic Skill modules | Not started |
+| DreamDEX live market adapter | Not started |
+| Testnet execution and verification | Not started |
+| Public deployment and demo video | Not started |
+
+## 12. Implementation order
+
+1. Improve result presentation: verdict → reasons → evidence → action.
+2. Move to a TypeScript app structure with shared schemas.
+3. Implement Strategy IR compiler and SQLite experiment schema.
+4. Implement the five P0 Skills with fixtures.
+5. Implement structured Agent Memory retrieval and recommendation lineage.
+6. Integrate DreamDEX live market read and dry-run.
+7. Complete and verify one Shannon testnet transaction.
+8. Freeze the demo, publish, record, and submit.
+
+## 13. Decision log
+
+- 2026-08-24: Use a form-based low-code builder instead of a free-form node canvas.
+- 2026-08-24: Treat official Bot Kit backtesting and bot templates as infrastructure, not project differentiation.
+- 2026-08-24: Make deterministic Skills and independent validation the trust boundary.
+- 2026-08-24: Add structured Agent Memory while forbidding memory from self-validating a strategy.
+- 2026-08-24: Keep testnet and dry-run as the only hackathon deployment targets.
+

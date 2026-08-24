@@ -4,6 +4,8 @@
 
 当前阶段是 UX 与评测闭环原型，不包含真实 DreamDEX 交易。赛题符合度、技术缺口和提交前硬门见 [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md)。
 
+跨设备继续开发时，Codex 应首先读取 [AGENTS.md](AGENTS.md) 和 [docs/SPEC.md](docs/SPEC.md)。前者是仓库工作约定与续做清单，后者是产品、评测 Skill、Agent Memory、DreamDEX 集成及验收规范。
+
 ## 运行
 
 ```bash
