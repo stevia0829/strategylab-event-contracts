@@ -61,6 +61,103 @@ The main path must remain understandable without documentation:
 
 The MVP does not use a free-form drag canvas. Strategy IR and methodology are available through expandable technical details.
 
+### Visual indicator catalog
+
+The UI groups indicators instead of showing one unstructured list. Initial catalog:
+
+| Group | Indicators |
+|---|---|
+| Price and return | close, 1/5/20-period return, gap, candle body percentage |
+| Trend | SMA 20/50, EMA 12/26, EMA spread, MACD histogram, ADX, Aroon, Ichimoku distance |
+| Momentum | RSI, Stochastic, Stochastic RSI, CCI, ROC, Momentum, Williams %R, MFI |
+| Volatility | ATR, ATR percentage, realized volatility, Bollinger %B/width, Donchian and Keltner position |
+| Volume and flow | volume ratio, VWAP distance, OBV, CMF, accumulation/distribution |
+| Event Contract | implied probability, model-market edge, time to expiry, spread, depth, imbalance, strike distance, oracle divergence/freshness |
+
+Supported operators include below, above, crosses above/below, rising, falling, equals, and between where the value shape permits it. Indicator definitions, units, warm-up requirements, and default periods must come from a registry rather than UI conditionals.
+
+Progressive disclosure:
+
+- default view shows two condition rows;
+- `Add condition` adds another row and AND/OR combinator;
+- indicator-specific period and source settings open inline only when needed;
+- execution and Event Contract filters are visually distinguished from directional signals;
+- unsupported combinations fail compilation with a useful explanation.
+
+### Custom indicator registry
+
+Users may create a reusable indicator and add it to the Visual catalog without writing a complete strategy. A custom indicator uses a restricted expression DSL, not JavaScript or Python.
+
+```json
+{
+  "id": "trend_quality",
+  "name": "Trend quality",
+  "formula": "(ema(close, 12) - ema(close, 26)) / atr(14)",
+  "parameters": {"fast": 12, "slow": 26, "atr_period": 14},
+  "output": {"type": "number"},
+  "warmup_bars": 26,
+  "definition_version": "1.0.0"
+}
+```
+
+Supported primitives initially include OHLCV fields, arithmetic, `sma`, `ema`, `rsi`, `atr`, `stdev`, `highest`, `lowest`, `return`, `abs`, `min`, and `max`. The compiler must:
+
+1. parse into an AST rather than evaluate source text;
+2. reject unknown symbols, recursion, side effects and future offsets;
+3. infer the required warm-up window;
+4. enforce operation and lookback limits;
+5. evaluate bar-by-bar against the simulated clock;
+6. store the exact definition and version with each strategy run;
+7. rerun `temporal-integrity` like any built-in feature.
+
+Custom indicators can be private to a strategy or saved in the user's indicator catalog. Editing a saved definition creates a new version; historical backtests continue referencing the original version. Sharing and a public indicator marketplace are post-hackathon work.
+
+### Python strategy input
+
+Python is a second input mode for advanced users, not a different evaluation engine. A Python strategy receives a read-only `MarketContext` and may return only a standard `Decision`; the result then enters the same risk, backtest, Skill and version pipeline as Visual Strategy IR.
+
+```python
+class Strategy(EventContractStrategy):
+    parameters = {"rsi_period": 14, "threshold": 38}
+
+    def decide(self, ctx: MarketContext) -> Decision:
+        if ctx.rsi(self.parameters["rsi_period"]) < self.parameters["threshold"]:
+            return Decision.up(confidence=0.64)
+        return Decision.skip()
+```
+
+Allowed context capabilities:
+
+- historical bars available at the simulated timestamp;
+- registered indicators and rolling windows;
+- current Event Contract metadata and point-in-time order-book snapshot;
+- strategy state scoped to the current run;
+- deterministic clock and seeded random helper if explicitly enabled.
+
+Forbidden capabilities:
+
+- network, filesystem, subprocesses and dynamic package installation;
+- environment variables, wallets, signing and direct SDK calls;
+- system clock, unrestricted randomness, reflection and arbitrary imports;
+- access to future bars, settlement values or hidden holdout data.
+
+Validation pipeline:
+
+```text
+source upload/editor
+  → file/type/size checks
+  → AST policy scan and import allowlist
+  → disposable non-root container
+  → no network + read-only image + temporary workspace
+  → CPU/memory/time/output limits
+  → fixed JSON input/output schema
+  → temporal-integrity trace
+  → backtest and all applicable Skills
+  → destroy container
+```
+
+AST checks provide early feedback but never replace runtime isolation. The web/API process must never call `exec` on user code. Hackathon delivery may enable only repository-owned examples until container isolation tests pass; the UI must label that boundary honestly.
+
 ## 5. Strategy IR
 
 Minimum representation:
@@ -276,6 +373,29 @@ execution_records
 
 `memory_links` connects a recommendation to the memories used, their scores, and the reason for retrieval. This creates an auditable Agent trace without storing hidden chain-of-thought.
 
+### Agent presence in the product
+
+The Agent must be visible as an actor with bounded authority, not a decorative chat box:
+
+- **During creation:** translate a natural-language idea into editable Visual IR, explain missing risk controls, and retrieve relevant strategy templates;
+- **After evaluation:** summarize the top findings in plain language and show which Skills produced them;
+- **During improvement:** show the successful and rejected memories used, why they matched, and generate reviewable Strategy IR patches;
+- **During validation:** run candidates, compare trade-offs, and retain rejected branches;
+- **Before deployment:** explain hard-gate status, but never override a failed deterministic gate.
+
+Each Agent message that changes strategy state must link to an artifact:
+
+```text
+finding IDs
+retrieved memory IDs and match reasons
+candidate version ID
+Strategy IR patch
+validation run ID
+final accepted/rejected status
+```
+
+The primary UI pattern is an `Agent Brief` embedded in the workflow. Free-form chat is optional and secondary; it must not hide evidence, patches, or validation state inside conversation history.
+
 ## 9. DreamDEX adapter requirements
 
 - Use Event Contract `ec-core` / Markets SDK rather than Spot Pool APIs.
@@ -311,6 +431,8 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 | Component | Status |
 |---|---|
 | Static low-code UI | Done, prototype |
+| Expanded visual indicator catalog | Done, UI prototype |
+| Python fixed-interface editor | Done, UI/static-validation prototype |
 | Strategy IR preview | Done, prototype |
 | Simulated metrics and Skills | Done, placeholder logic |
 | Candidate holdout interaction | Done, deterministic demo |
@@ -318,6 +440,7 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 | TypeScript application framework | Not started |
 | Persistent version/experiment store | Not started |
 | Agent Memory store and retrieval | Not started |
+| Isolated Python execution service | Not started |
 | Real deterministic Skill modules | Not started |
 | DreamDEX live market adapter | Not started |
 | Testnet execution and verification | Not started |

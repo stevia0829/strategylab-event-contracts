@@ -3,6 +3,8 @@ let direction = 'UP';
 let candidateValidated = false;
 let activeFilter = 'attention';
 let currentSkills = [];
+let inputMode = 'visual';
+const customIndicators = [];
 
 const baselineCurve = [100,101,99,103,105,102,108,112,109,115,118,113,107,110,116,121,119,124,120,126,128,123,118,121,126,129,125,132,135,131,138,142,139,144,147,143,150,146,153,156];
 const candidateCurve = [100,101,100,103,105,104,108,111,110,114,116,115,112,114,117,120,120,123,122,125,127,126,124,126,129,131,130,134,136,135,139,142,141,145,147,146,150,151,154,157];
@@ -20,7 +22,9 @@ const skillDefinitions = [
 function strategyIR(){
   return {
     version:'1.0', name:'RSI Reversal', universe:{underlying:$('asset').value, contract_window:`${$('window').value}m`},
-    features:[{id:'signal',type:$('indicator').value.toUpperCase(),period:$('indicator').value==='rsi'?14:5},{id:'vol20',type:'VOLATILITY',period:20}],
+    input_mode:inputMode,
+    custom_indicators:customIndicators,
+    features:[{id:'signal',type:$('indicator').value.toUpperCase(),period:$('indicator').value==='rsi'?14:5},{id:'market_filter',type:$('filterIndicator').value.toUpperCase(),period:20}],
     decision:{when:{all:[{left:'signal',op:$('operator').value==='lt'?'<':'>',right:Number($('threshold').value)},{left:'vol20',op:$('volOperator').value==='lt'?'<':'>',right:Number($('volatility').value)/100}]},action:direction},
     risk:{stake_usdso:Number($('stake').value),max_consecutive_losses:Number($('lossLimit').value)},
     execution:{data_tier:'RECONSTRUCTED',fee_bps:15,latency_ms:800}
@@ -99,6 +103,24 @@ function resetCandidateUI(){
 function showToast(message){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
 
 document.querySelectorAll('[data-direction]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-direction]').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');direction=btn.dataset.direction}));
+document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');inputMode=btn.dataset.mode;
+  $('visualBuilder').classList.toggle('hidden',inputMode!=='visual');$('pythonBuilder').classList.toggle('hidden',inputMode!=='python');
+  $('viewIr').textContent=inputMode==='python'?'View sandbox contract →':'View Strategy IR →';
+}));
+$('addCondition').addEventListener('click',()=>showToast('MVP supports 2 visible rules · More conditions compile to the same Strategy IR'));
+$('createIndicator').addEventListener('click',()=>$('indicatorDialog').showModal());
+$('closeIndicator').addEventListener('click',()=>$('indicatorDialog').close());
+$('saveIndicator').addEventListener('click',()=>{
+  const name=$('customName').value.trim(),formula=$('customFormula').value.trim();
+  const allowed=/^[a-zA-Z0-9_+\-*/().,\s]+$/.test(formula)&&!/(eval|exec|import|open|__|future|settlement)/i.test(formula);
+  if(!name||!formula||!allowed){$('formulaStatus').textContent='Invalid formula · use registered functions and market fields only';$('formulaStatus').className='python-validation';return}
+  const id=`custom_${Date.now()}`;const definition={id,name,formula,period:Number($('customPeriod').value),unit:$('customUnit').value};customIndicators.push(definition);
+  [$('indicator'),$('filterIndicator')].forEach(select=>{let group=select.querySelector('optgroup[label="Custom indicators"]');if(!group){group=document.createElement('optgroup');group.label='Custom indicators';select.appendChild(group)}const option=document.createElement('option');option.value=id;option.textContent=`◇ ${name}`;group.appendChild(option)});
+  $('indicator').value=id;$('formulaStatus').textContent='Formula validated · added to this strategy catalog';$('formulaStatus').className='python-validation pass';showToast(`${name} added to indicator catalog`);setTimeout(()=>$('indicatorDialog').close(),650);
+});
+$('validatePython').addEventListener('click',()=>{const code=$('pythonCode').value;const valid=code.includes('class Strategy')&&code.includes('def decide')&&!/(import\s+(os|sys|socket|subprocess)|open\s*\()/m.test(code);$('pythonValidation').textContent=valid?'Contract valid · Ready for isolated backtest':'Validation failed · Use Strategy.decide and allowed context only';$('pythonValidation').className=`python-validation ${valid?'pass':''}`;showToast(valid?'Python contract passed static validation':'Python contract needs attention')});
+$('showMemories').addEventListener('click',()=>{const el=document.querySelector('.agent-brief');el.classList.remove('memory-highlight');void el.offsetWidth;el.classList.add('memory-highlight');showToast('4 memories · 3 validated · 1 rejected · current match 87%')});
 $('runButton').addEventListener('click',runBacktest);
 $('testCandidate').addEventListener('click',testCandidate);
 $('viewIr').addEventListener('click',()=>{$('irOutput').textContent=JSON.stringify(strategyIR(),null,2);$('irDialog').showModal()});

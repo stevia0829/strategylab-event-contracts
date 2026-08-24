@@ -28,16 +28,42 @@
 
     <section class="workspace-grid">
       <aside class="panel builder">
-        <div class="panel-head"><div><span class="step">01</span><h2>Define strategy</h2></div><span class="tag">VISUAL</span></div>
+        <div class="panel-head"><div><span class="step">01</span><h2>Define strategy</h2></div><span class="tag">2 INPUT MODES</span></div>
+        <div class="mode-switch" role="tablist" aria-label="Strategy input mode"><button class="selected" data-mode="visual">Visual builder</button><button data-mode="python">Python strategy</button></div>
+        <div id="visualBuilder">
         <label>Market</label>
         <div class="two-col"><select id="asset"><option>BTC</option><option>ETH</option></select><select id="window"><option value="15">15 min</option><option value="60">1 hour</option></select></div>
         <label>Enter when</label>
-        <div class="rule"><span class="rule-dot coral"></span><select id="indicator"><option value="rsi">RSI (14)</option><option value="return">Return (5)</option></select><select id="operator"><option value="lt">is below</option><option value="gt">is above</option></select><input id="threshold" type="number" value="38" /></div>
+        <div class="rule"><span class="rule-dot coral"></span><select id="indicator">
+          <optgroup label="Price & return"><option value="price">Close price</option><option value="return_1">Return (1)</option><option value="return_5">Return (5)</option><option value="return_20">Return (20)</option><option value="gap">Price gap</option><option value="candle_body">Candle body %</option></optgroup>
+          <optgroup label="Trend"><option value="sma_20">SMA (20)</option><option value="sma_50">SMA (50)</option><option value="ema_12">EMA (12)</option><option value="ema_26">EMA (26)</option><option value="ema_cross">EMA 12 / 26 spread</option><option value="macd">MACD histogram</option><option value="adx">ADX (14)</option><option value="aroon">Aroon oscillator</option><option value="ichimoku">Ichimoku cloud distance</option></optgroup>
+          <optgroup label="Momentum"><option value="rsi" selected>RSI (14)</option><option value="stoch_k">Stochastic %K</option><option value="stoch_rsi">Stochastic RSI</option><option value="cci">CCI (20)</option><option value="roc">Rate of change</option><option value="momentum">Momentum (10)</option><option value="williams_r">Williams %R</option><option value="mfi">Money Flow Index</option></optgroup>
+          <optgroup label="Volatility"><option value="atr">ATR (14)</option><option value="atr_pct">ATR %</option><option value="volatility_20">Realized volatility (20)</option><option value="bollinger_pct_b">Bollinger %B</option><option value="bollinger_width">Bollinger width</option><option value="donchian">Donchian position</option><option value="keltner">Keltner position</option></optgroup>
+          <optgroup label="Volume & flow"><option value="volume">Volume</option><option value="volume_ratio">Volume / average</option><option value="vwap_distance">Price vs VWAP</option><option value="obv">OBV change</option><option value="cmf">Chaikin Money Flow</option><option value="ad_line">Accumulation / distribution</option></optgroup>
+          <optgroup label="Event Contract"><option value="implied_probability">Implied probability</option><option value="probability_edge">Model vs market edge</option><option value="time_to_expiry">Time to expiry</option><option value="spread">Bid / ask spread</option><option value="book_imbalance">Order-book imbalance</option><option value="book_depth">Book depth</option><option value="strike_distance">Distance to strike</option><option value="oracle_divergence">Oracle divergence</option></optgroup>
+        </select><select id="operator"><option value="lt">is below</option><option value="gt">is above</option><option value="cross_above">crosses above</option><option value="cross_below">crosses below</option><option value="rising">is rising</option><option value="falling">is falling</option><option value="equal">equals</option></select><input id="threshold" type="number" value="38" /></div>
         <div class="connector">AND</div>
-        <div class="rule"><span class="rule-dot mint"></span><select disabled><option>Volatility (20)</option></select><select id="volOperator"><option value="lt">is below</option><option value="gt">is above</option></select><input id="volatility" type="number" value="3.8" step="0.1" /></div>
+        <div class="rule"><span class="rule-dot mint"></span><select id="filterIndicator"><optgroup label="Market regime"><option value="volatility">Realized volatility (20)</option><option value="atr_pct">ATR %</option><option value="adx">ADX trend strength</option><option value="bollinger">Bollinger width</option><option value="volume_ratio">Volume / average</option></optgroup><optgroup label="Execution"><option value="spread">Bid / ask spread</option><option value="liquidity">Book liquidity</option><option value="imbalance">Order-book imbalance</option><option value="slippage">Estimated slippage</option></optgroup><optgroup label="Contract"><option value="expiry">Time to expiry</option><option value="probability">Implied probability</option><option value="strike_distance">Distance to strike</option><option value="oracle_freshness">Oracle freshness</option></optgroup></select><select id="volOperator"><option value="lt">is below</option><option value="gt">is above</option><option value="between">is between</option><option value="rising">is rising</option><option value="falling">is falling</option></select><input id="volatility" type="number" value="3.8" step="0.1" /></div>
+        <div class="builder-actions"><button id="addCondition" class="add-condition">＋ Add condition</button><button id="createIndicator" class="add-condition">◇ Create indicator</button></div>
         <label>Prediction & risk</label>
         <div class="two-col"><div class="segmented"><button class="selected" data-direction="UP">UP</button><button data-direction="DOWN">DOWN</button></div><div class="money"><span>$</span><input id="stake" type="number" value="10" min="1" /></div></div>
         <div class="risk-row"><span>Stop after consecutive losses</span><input id="lossLimit" type="number" value="4" min="1" /></div>
+        <details class="advanced"><summary>Advanced risk controls</summary><div class="advanced-grid"><label>Daily loss limit<input type="number" value="30" /></label><label>Cooldown windows<input type="number" value="2" /></label><label>Min confidence<input type="number" value="0.6" step="0.05" /></label><label>Min time to expiry<input type="number" value="90" /></label></div></details>
+        </div>
+        <div id="pythonBuilder" class="python-builder hidden">
+          <div class="python-note"><b>Sandboxed Strategy API</b><span>Code can emit decisions only. Network, files, wallets and secrets are unavailable.</span></div>
+          <label>Python strategy</label>
+          <textarea id="pythonCode" spellcheck="false">class Strategy(EventContractStrategy):
+    parameters = {"rsi_period": 14, "threshold": 38}
+
+    def decide(self, ctx: MarketContext) -> Decision:
+        if ctx.rsi(14) < self.parameters["threshold"]:
+            return Decision.up(confidence=0.64)
+        return Decision.skip()</textarea>
+          <div class="sandbox-list"><span>✓ Fixed API</span><span>✓ No network</span><span>✓ 2s CPU limit</span><span>✓ Read-only data</span></div>
+          <button id="validatePython" class="secondary wide">Validate sandbox contract</button>
+          <div id="pythonValidation" class="python-validation">Not validated</div>
+        </div>
         <button id="runButton" class="primary"><span>Run evidence check</span><kbd>⌘ ↵</kbd></button>
         <button id="viewIr" class="text-button">View Strategy IR →</button>
       </aside>
@@ -81,6 +107,10 @@
 
     <section class="panel coach">
       <div class="panel-head"><div><span class="step">04</span><h2>Evidence-based Coach</h2></div><span class="tag violet">2 CANDIDATES</span></div>
+      <div class="agent-brief">
+        <div class="agent-avatar">A</div><div><span>STRATEGY AGENT · MEMORY-AWARE</span><h3>I found 4 related experiments</h3><p>Three similar BTC 15m RSI strategies improved after adding a volatility guardrail; one was rejected because coverage fell too far. Historical evidence ranks this candidate, but cannot validate it.</p></div>
+        <button id="showMemories" class="text-button">Inspect memories →</button>
+      </div>
       <div class="coach-grid">
         <article class="finding">
           <span class="status fail">HIGH RISK</span>
@@ -118,6 +148,13 @@
   </main>
 
   <dialog id="irDialog"><div class="dialog-head"><h2>Strategy IR</h2><button id="closeDialog">×</button></div><pre id="irOutput"></pre><button id="copyIr" class="secondary">Copy JSON</button></dialog>
+  <dialog id="indicatorDialog" class="indicator-dialog"><div class="dialog-head"><div><span class="dialog-eyebrow">CUSTOM INDICATOR</span><h2>Create a reusable signal</h2></div><button id="closeIndicator">×</button></div>
+    <label>Name</label><input id="customName" placeholder="e.g. Trend quality" maxlength="40" />
+    <label>Formula</label><textarea id="customFormula" spellcheck="false" placeholder="(ema(close, 12) - ema(close, 26)) / atr(14)"></textarea>
+    <p class="formula-help">Available: OHLCV, sma, ema, rsi, atr, stdev, highest, lowest, return, abs, min, max. Only past and current bars are allowed.</p>
+    <div class="two-col"><label>Default period<input id="customPeriod" type="number" value="14" min="1" max="500" /></label><label>Output unit<select id="customUnit"><option value="number">Number</option><option value="percent">Percent</option><option value="probability">Probability</option><option value="boolean">Boolean</option></select></label></div>
+    <div id="formulaStatus" class="python-validation">Formula not validated</div><button id="saveIndicator" class="secondary wide">Validate & add to catalog</button>
+  </dialog>
   <div id="toast" role="status"></div>
   <footer><span>StrategyLab · Hackathon MVP</span><span>Not financial advice · Testnet only</span></footer>
   <script src="app.js"></script>
