@@ -174,7 +174,7 @@ npm run build
 - SDK promise resolved 不等于交易成功，未来必须检查 receipt 和业务事件；
 - 所有阈值都是透明的产品护栏，不是盈利保证或金融建议。
 
-详细规范见 [docs/SPEC.md](docs/SPEC.md)，官方赛题符合度见 [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md)。跨设备继续开发前请先阅读 [AGENTS.md](AGENTS.md)。
+详细规范见 [docs/SPEC.md](docs/SPEC.md)，执行顺序和验收清单见 [docs/TODO.md](docs/TODO.md)，官方赛题符合度见 [docs/HACKATHON_COMPLIANCE.md](docs/HACKATHON_COMPLIANCE.md)。跨设备继续开发前请先阅读 [AGENTS.md](AGENTS.md)。
 
 ## 开发进度
 

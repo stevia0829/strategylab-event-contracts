@@ -1,6 +1,6 @@
 # StrategyLab Agent Instructions
 
-This file is the persistent handoff for Codex and other coding agents working in this repository. Read this file and `docs/SPEC.md` before changing code.
+This file is the persistent handoff for Codex and other coding agents working in this repository. Read this file, `docs/SPEC.md`, and `docs/TODO.md` before changing code.
 
 ## Mission
 
@@ -90,5 +90,7 @@ For future DreamDEX integration, add automated tests for integer tick/lot quanti
 2. Run `git status --short` and preserve unrelated user changes.
 3. Run `npm test` and open the local demo.
 4. Check the “Current implementation status” section in `docs/SPEC.md`.
-5. Work on the first incomplete P0 item unless the user sets another priority.
-6. Update the status and decision log when a milestone or architecture choice changes.
+5. Check `docs/TODO.md` for dependencies, blockers, and acceptance criteria.
+6. Work on the first actionable incomplete P0 item unless the user sets another priority.
+7. Update TODO status and verification evidence when a milestone changes.
+8. Update the Spec decision log when an architecture or product choice changes.
