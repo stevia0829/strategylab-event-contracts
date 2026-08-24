@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StrategyLab — Evidence before execution</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">S</span><span>StrategyLab</span></a>
+    <nav><a class="active" href="#workspace">Workspace</a><a href="#methodology">Methodology</a></nav>
+    <div class="network"><span></span> DreamDEX Testnet</div>
+  </header>
+
+  <main id="workspace">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">EVENT CONTRACT STRATEGY WORKBENCH</p>
+        <h1>Prove the edge.<br><em>Before you trade it.</em></h1>
+        <p class="lede">把一个交易想法变成可复现的实验。每一条优化建议都有证据、公开评测方法和独立验证结果。</p>
+      </div>
+      <div class="hero-score">
+        <div class="score-ring"><strong id="readinessScore">42</strong><small>/ 100</small></div>
+        <div><span>DEPLOYMENT READINESS</span><b id="readinessLabel">Sandbox only</b><small>3 checks need attention</small></div>
+      </div>
+    </section>
+
+    <section class="workspace-grid">
+      <aside class="panel builder">
+        <div class="panel-head"><div><span class="step">01</span><h2>Define strategy</h2></div><span class="tag">VISUAL</span></div>
+        <label>Market</label>
+        <div class="two-col"><select id="asset"><option>BTC</option><option>ETH</option></select><select id="window"><option value="15">15 min</option><option value="60">1 hour</option></select></div>
+        <label>Enter when</label>
+        <div class="rule"><span class="rule-dot coral"></span><select id="indicator"><option value="rsi">RSI (14)</option><option value="return">Return (5)</option></select><select id="operator"><option value="lt">is below</option><option value="gt">is above</option></select><input id="threshold" type="number" value="38" /></div>
+        <div class="connector">AND</div>
+        <div class="rule"><span class="rule-dot mint"></span><select disabled><option>Volatility (20)</option></select><select id="volOperator"><option value="lt">is below</option><option value="gt">is above</option></select><input id="volatility" type="number" value="3.8" step="0.1" /></div>
+        <label>Prediction & risk</label>
+        <div class="two-col"><div class="segmented"><button class="selected" data-direction="UP">UP</button><button data-direction="DOWN">DOWN</button></div><div class="money"><span>$</span><input id="stake" type="number" value="10" min="1" /></div></div>
+        <div class="risk-row"><span>Stop after consecutive losses</span><input id="lossLimit" type="number" value="4" min="1" /></div>
+        <button id="runButton" class="primary"><span>Run evidence check</span><kbd>⌘ ↵</kbd></button>
+        <button id="viewIr" class="text-button">View Strategy IR →</button>
+      </aside>
+
+      <section class="results">
+        <div class="panel metrics-panel">
+          <div class="panel-head"><div><span class="step">02</span><h2>Backtest evidence</h2></div><span id="dataBadge" class="tag amber">RECONSTRUCTED DATA</span></div>
+          <div class="metrics">
+            <article><span>Net return</span><strong id="netReturn">+12.8%</strong><small id="netDelta">training period</small></article>
+            <article><span>Max drawdown</span><strong id="drawdown">−28.4%</strong><small>lower is better</small></article>
+            <article><span>Win rate</span><strong id="winRate">58.2%</strong><small id="tradeCount">67 trades</small></article>
+            <article><span>Profit factor</span><strong id="profitFactor">1.31</strong><small>gross win / loss</small></article>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-head"><span>Equity curve</span><div><i class="baseline"></i> Baseline <i class="candidate"></i> Candidate</div></div>
+            <svg id="equityChart" viewBox="0 0 760 190" preserveAspectRatio="none" aria-label="Equity curve"></svg>
+          </div>
+        </div>
+
+        <div class="panel skills-panel" id="methodology">
+          <div class="panel-head"><div><span class="step">03</span><h2>Evaluation skills</h2></div><span class="method-count">7 deterministic checks</span></div>
+          <div id="skills" class="skills"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel coach">
+      <div class="panel-head"><div><span class="step">04</span><h2>Evidence-based Coach</h2></div><span class="tag violet">2 CANDIDATES</span></div>
+      <div class="coach-grid">
+        <article class="finding">
+          <span class="status fail">HIGH RISK</span>
+          <h3>Profits depend on a few lucky windows</h3>
+          <p id="findingText">Top 3 trades contribute 68% of total profit. Removing them turns the result negative.</p>
+          <div class="evidence"><span>Evidence</span><b id="evidenceText">Trades #08, #31, #54 · +$42.60</b></div>
+        </article>
+        <article class="recommendation">
+          <span class="status candidate-status">CANDIDATE</span>
+          <h3>Add a volatility guardrail</h3>
+          <p>Avoid contracts when 20-window volatility exceeds <b id="suggestedVol">2.9%</b>. This targets the failed regime without changing the entry signal.</p>
+          <div class="tradeoff"><span>Expected trade-off</span><b>Coverage −18% · Drawdown ↓</b></div>
+          <button id="testCandidate" class="secondary">Test on frozen holdout</button>
+        </article>
+        <article id="validationCard" class="validation locked">
+          <div class="lock">↗</div>
+          <span class="status" id="validationStatus">AWAITING TEST</span>
+          <h3 id="validationTitle">Independent validation</h3>
+          <p id="validationCopy">Candidate must pass the same seven Skills on data it has not seen.</p>
+          <div class="comparison"><div><span>Drawdown</span><b id="compareDrawdown">—</b></div><div><span>Expected value</span><b id="compareEv">—</b></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel lineage">
+      <div class="panel-head"><div><span class="step">05</span><h2>Experiment lineage</h2></div><button id="resetDemo" class="text-button">Reset demo</button></div>
+      <div class="version-flow">
+        <article class="version active"><span>v1</span><div><b>RSI reversal</b><small>Baseline · 7 skills executed</small></div><em>ACTIVE</em></article>
+        <div class="branch">→</div>
+        <article id="candidateVersion" class="version muted"><span>v2</span><div><b>Volatility guardrail</b><small>AI candidate · frozen holdout</small></div><em id="versionState">PENDING</em></article>
+        <div class="branch">→</div>
+        <button id="deployButton" class="deploy" disabled><span>Deploy</span><small>DreamDEX testnet</small></button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="irDialog"><div class="dialog-head"><h2>Strategy IR</h2><button id="closeDialog">×</button></div><pre id="irOutput"></pre><button id="copyIr" class="secondary">Copy JSON</button></dialog>
+  <div id="toast" role="status"></div>
+  <footer><span>StrategyLab · Hackathon MVP</span><span>Not financial advice · Testnet only</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
