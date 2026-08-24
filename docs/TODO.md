@@ -65,7 +65,61 @@ Still simulated:
 - DreamDEX market and deployment actions;
 - Python code execution.
 
-## 4. P0 — Hackathon compliance line
+## 4. Competition alignment gate
+
+Official competition position:
+
+> Build a useful, innovative, or engaging experience that demonstrates meaningful use of DreamDEX Event Contracts and its APIs/SDKs.
+
+StrategyLab must be submitted as an **Event Contract strategy validation and safe-deployment application**, not as a generic stock/crypto backtester, an AI price predictor, or a wrapper around the official example bots.
+
+### Required evidence mapping
+
+| Official requirement / criterion | StrategyLab submission claim | Evidence required before submission | Gate |
+|---|---|---|---|
+| Working prototype on testnet | A validated strategy can create and execute a Shannon testnet Event Contract order | Public app URL, testnet transaction URL, receipt and decoded Event | HARD |
+| DreamDEX Event Contracts integration | Reads live binary BTC/ETH markets and submits through the official Event Contract SDK path | Code paths, live market ID, SDK version, screen recording | HARD |
+| Meaningful API/SDK use | Market discovery, status, quotes, order preview, execution and settlement/claim status | Adapter tests, sanitized logs, transaction replay | HARD |
+| Innovation — 20% | Deterministic Skills + Agent Memory + Candidate patch + frozen validation | One complete finding-to-validated/rejected experiment | SCORE |
+| Technical implementation — 25% | Point-in-time IR/backtest, versioned Skills, execution verification | Tests, architecture, reproducible report, testnet evidence | SCORE |
+| UX and design — 20% | Four-action low-code workflow with plain-language verdict | A new user completes the demo without developer explanation | SCORE |
+| Business/ecosystem impact — 20% | Helps non-programmers safely create DreamDEX trading activity | Clear target user, adoption path, testnet-to-product roadmap | SCORE |
+| Presentation/demo — 15% | A failed baseline becomes a validated candidate and executes on testnet | 2–3 minute edited video with readable evidence | HARD/SCORE |
+| GitHub repository | Reproducible public source | Clean clone, setup commands, license, no secrets | HARD |
+
+### Non-negotiable positioning rules
+
+- [ ] Every market, order and deployment screen says **DreamDEX Event Contract**, not only BTC/ETH trading.
+- [ ] Use binary UP/DOWN probability, strike, interval and expiry semantics; do not present ordinary long/short spot positions.
+- [ ] Use the Event Contract SDK/`ec-core` path, not DreamDEX Spot Pool APIs.
+- [ ] Show at least one real live market and one verified Shannon transaction.
+- [ ] Clearly label `PROTOCOL`, `RECONSTRUCTED` and `SYNTHETIC` data.
+- [ ] Do not claim reconstructed backtest PnL is historical DreamDEX execution.
+- [ ] Do not claim the Agent predicts markets or guarantees profit.
+- [ ] Do not submit a UI-only prototype or a modified official sample bot.
+- [ ] Keep the differentiator visible: the Agent remembers experiments, but deterministic Skills and holdout validation control deployment.
+
+### Pre-submission compliance review
+
+Run this review after feature freeze:
+
+- [ ] Open the public deployment in a logged-out browser.
+- [ ] Read a currently live DreamDEX Event Contract.
+- [ ] Create or load a strategy and inspect its Strategy IR.
+- [ ] Produce a report from traceable data.
+- [ ] Open at least three real Skill evidence records.
+- [ ] Generate one Candidate linked to findings and memory IDs.
+- [ ] Validate the Candidate on a frozen holdout.
+- [ ] Confirm an unvalidated version cannot deploy.
+- [ ] Execute the validated version on Shannon testnet.
+- [ ] Open its explorer transaction and verify receipt/Event evidence.
+- [ ] Confirm GitHub setup works from a fresh directory.
+- [ ] Scan Git history and frontend bundle for secrets.
+- [ ] Confirm the video and submission text never overstate simulated functionality.
+
+If any HARD gate is unchecked, the project is not submission-ready.
+
+## 5. P0 — Hackathon compliance line
 
 Complete these before adding broad product features.
 
@@ -212,7 +266,7 @@ Acceptance criteria:
 - Failed/reverted/silent-rejection paths are demonstrated.
 - At least one sanitized testnet transaction URL is documented.
 
-## 5. P1 — Award differentiation
+## 6. P1 — Award differentiation
 
 ### P1.1 Agent Memory store and retrieval
 
@@ -281,7 +335,7 @@ Acceptance criteria:
 - Python and Visual strategies enter the same risk, Skill and validation pipeline.
 - Keep public upload disabled until all isolation tests pass.
 
-## 6. P2 — Submission and product finish
+## 7. P2 — Submission and product finish
 
 - [ ] Replace fixed Demo content with the real P0/P1 pipeline.
 - [ ] Run usability tests with at least three people unfamiliar with the project.
@@ -293,7 +347,91 @@ Acceptance criteria:
 - [ ] Prepare optional SDK/documentation feedback report.
 - [ ] Submit repository, deployed URL and video before the deadline buffer.
 
-## 7. External actions owned by the user
+### P2.1 Demo video production plan
+
+Target length: **2:30**, never longer than 3:00. Record at 1440p or 1080p, 30 fps, with browser zoom adjusted so evidence remains readable on a laptop screen. Use English UI and preferably English narration/subtitles for global judges; a Chinese working script is acceptable during rehearsal.
+
+#### Core story
+
+> A strategy can look profitable and still be unsafe. StrategyLab finds why, uses verified experiment memory to propose a focused change, proves the change on unseen data, and only then permits a DreamDEX Event Contract testnet action.
+
+#### Shot-by-shot script
+
+| Time | Screen/action | Narration goal | Required evidence |
+|---:|---|---|---|
+| 0:00–0:12 | Title plus live DreamDEX BTC/ETH Event Contract | State the user problem in one sentence | DreamDEX name, live market, UP/DOWN, strike, expiry |
+| 0:12–0:28 | Visual Builder; choose RSI, volatility filter and risk | Show that a non-programmer can express a strategy quickly | Four-action workflow and Event Contract-specific fields |
+| 0:28–0:38 | Briefly switch to Python and back | Establish an advanced path without distracting from the main demo | Fixed `decide()` API and sandbox label only |
+| 0:38–0:50 | Open Strategy IR and run evaluation | Show reproducibility and a deterministic pipeline | IR version, data tier, engine/Skill versions |
+| 0:50–1:15 | Result verdict and failed Skills | Create the demo tension: profitable headline, unsafe evidence | Drawdown, profit concentration, affected trade/market IDs |
+| 1:15–1:35 | Agent Brief and retrieved memories | Show the unique Agent capability and bounded authority | 3 validated + 1 rejected memory, match reasons, applicability warning |
+| 1:35–1:52 | Candidate JSON Patch / version branch | Show exactly what the Agent changes and the expected trade-off | Finding IDs, patch, coverage cost, Candidate status |
+| 1:52–2:10 | Frozen holdout validation | Prove the recommendation rather than trusting prose | before/after metrics, unchanged holdout ID, VALIDATED/REJECTED rule |
+| 2:10–2:28 | Deployment gate and DreamDEX testnet execution | Close the required on-chain loop | locked-before/unlocked-after, order preview, explicit confirm |
+| 2:28–2:40 | Explorer/receipt/Event and replay record | Prove business success, not just a resolved SDK call | tx hash, success receipt, decoded expected Event, market ID |
+| 2:40–2:52 | Architecture or version lineage | Establish technical depth without reading code | IR → Skills → Memory → validation → adapter flow |
+| 2:52–3:00 | Closing product vision and links | State ecosystem value and give judges next action | GitHub, public demo URL, testnet-only disclaimer |
+
+If the edit must be closer to two minutes, remove the Python shot and shorten architecture; never remove the real DreamDEX transaction evidence.
+
+#### Exact demo data to prepare
+
+- [ ] One live or captured DreamDEX Event Contract with stable readable metadata.
+- [ ] One baseline strategy whose headline result is positive but fails risk/concentration checks.
+- [ ] At least three affected trade/market IDs for evidence drill-down.
+- [ ] Three relevant validated memories and one rejected memory.
+- [ ] One focused volatility/risk Candidate expressed as a Strategy IR JSON Patch.
+- [ ] One frozen holdout where the Candidate passes with a visible trade-off.
+- [ ] One rejected Candidate if time permits, to prove the Agent preserves failures.
+- [ ] One sanitized Shannon transaction with explorer URL, receipt and decoded Event.
+- [ ] One fallback prerecorded transaction replay in case the live testnet/indexer is unstable.
+
+#### Recording checklist
+
+- [ ] Freeze code and demo fixtures before recording.
+- [ ] Clear unrelated browser tabs, bookmarks, notifications and personal information.
+- [ ] Use a dedicated test wallet with no real assets.
+- [ ] Never show a private key, seed phrase, `.env`, wallet export or sensitive RPC credential.
+- [ ] Preload pages and verify the faucet, RPC, indexer and explorer are responsive.
+- [ ] Record a clean silent screen take first, then narration separately when possible.
+- [ ] Keep the cursor deliberate and avoid scrolling while speaking about evidence.
+- [ ] Add zoom/callouts only for small transaction and Skill evidence fields.
+- [ ] Add subtitles and keep background music absent or very low.
+- [ ] Display `Testnet only`, data provenance and “not financial advice” unobtrusively.
+- [ ] Export H.264 MP4 and verify audio/video on another device.
+- [ ] Upload as unlisted/public and test the link while logged out.
+
+#### Narration draft
+
+Use this as a concise base, then rewrite around the final working UI:
+
+> Event Contract strategies often look convincing in a backtest but fail because of leakage, concentrated luck, or unrealistic execution. StrategyLab lets anyone define a DreamDEX strategy visually, or through a sandboxed Python interface. The strategy compiles to a versioned IR and runs through deterministic evaluation Skills. This baseline is profitable, but deployment is blocked: drawdown exceeds its guardrail and most profit comes from three windows. Our Agent retrieves both successful and rejected experiments from similar market regimes and proposes one reviewable patch. It cannot approve its own advice. We rerun the candidate on a frozen holdout, show both the improvement and reduced coverage, and only the validated version unlocks DreamDEX testnet execution. The transaction is then verified through its receipt and expected Event, producing a replayable audit record. StrategyLab turns AI trading advice into evidence before execution.
+
+#### Video acceptance criteria
+
+- A judge understands the problem within 15 seconds.
+- DreamDEX Event Contracts appear in the first screen and final transaction.
+- The video shows a real product interaction, not slides only.
+- The unique Agent Memory + deterministic validation boundary is understandable without reading the repository.
+- At least one failed check, one candidate patch and one independent validation result are readable.
+- Testnet receipt/Event evidence is readable and linked in the description.
+- The video is between 2:00 and 3:00 with no dead loading time.
+- All claims match the committed code and public deployment.
+
+#### Submission description assets
+
+- [ ] One-sentence pitch.
+- [ ] 100–150 word problem/solution summary.
+- [ ] Architecture image.
+- [ ] Public app URL.
+- [ ] GitHub repository URL and tested setup instructions.
+- [ ] Video URL.
+- [ ] Shannon transaction/explorer URL.
+- [ ] SDK/API list and versions used.
+- [ ] Data provenance and known limitations.
+- [ ] Optional DreamDEX SDK/documentation feedback.
+
+## 8. External actions owned by the user
 
 - [ ] Confirm DoraHacks registration and exact account-timezone deadline.
 - [ ] Join the official builder communication channel.
@@ -302,7 +440,7 @@ Acceptance criteria:
 - [ ] Decide where the public demo will be hosted.
 - [ ] Record narration or appear in the final demo if desired.
 
-## 8. Known blockers and risks
+## 9. Known blockers and risks
 
 | Risk | Current state | Mitigation |
 |---|---|---|
@@ -313,7 +451,7 @@ Acceptance criteria:
 | UI can outpace real implementation | Current risk | Do not mark a module done based on fixed Demo data |
 | Testnet action can silently fail | Known protocol risk | Verify receipt and expected Event logs |
 
-## 9. Definition of done for the hackathon MVP
+## 10. Definition of done for the hackathon MVP
 
 The MVP is ready to submit only when all are true:
 
@@ -328,7 +466,7 @@ The MVP is ready to submit only when all are true:
 - [ ] README setup works from a clean clone.
 - [ ] Demo video clearly shows problem, solution, evidence, trade-off and testnet action.
 
-## 10. Work log
+## 11. Work log
 
 Append milestone-level updates only; detailed history remains in Git.
 
