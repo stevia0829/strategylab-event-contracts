@@ -437,7 +437,7 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 | Simulated metrics and Skills | Done, placeholder logic |
 | Candidate holdout interaction | Done, deterministic demo |
 | Result progressive disclosure | Done, prototype |
-| TypeScript application framework | Not started |
+| Vite + TypeScript application framework | Done, initial migration |
 | Persistent version/experiment store | Not started |
 | Agent Memory store and retrieval | Not started |
 | Isolated Python execution service | Not started |

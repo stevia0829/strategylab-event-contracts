@@ -11,7 +11,7 @@ The product is not a price-prediction model, a generic backtester, or a wrapper 
 ## Current state
 
 - The repository contains a dependency-free interactive frontend prototype.
-- `index.html`, `styles.css`, and `app.js` implement the current demo.
+- `index.html`, `styles.css`, `src/main.ts`, and `src/types.ts` implement the current TypeScript demo.
 - The existing backtest numbers and DreamDEX deployment are deterministic simulations.
 - No wallet is connected and no transaction is broadcast.
 - `docs/HACKATHON_COMPLIANCE.md` records official requirements and current gaps.
@@ -62,6 +62,7 @@ For frontend-only changes:
 
 ```bash
 npm test
+npm run build
 ```
 
 Also exercise this path in a browser:
@@ -91,4 +92,3 @@ For future DreamDEX integration, add automated tests for integer tick/lot quanti
 4. Check the “Current implementation status” section in `docs/SPEC.md`.
 5. Work on the first incomplete P0 item unless the user sets another priority.
 6. Update the status and decision log when a milestone or architecture choice changes.
-

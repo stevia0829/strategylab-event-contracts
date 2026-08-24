@@ -10,15 +10,16 @@
 
 ```bash
 cd strategylab-mvp
-python3 -m http.server 4173
+npm install
+npm run dev
 ```
 
 浏览器打开 <http://localhost:4173>。
 
-也可以执行静态检查：
+执行类型检查和生产构建：
 
 ```bash
-npm run check
+npm run build
 ```
 
 ## 低代码交互原则
