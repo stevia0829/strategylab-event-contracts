@@ -45,6 +45,11 @@
       <section class="results">
         <div class="panel metrics-panel">
           <div class="panel-head"><div><span class="step">02</span><h2>Backtest evidence</h2></div><span id="dataBadge" class="tag amber">RECONSTRUCTED DATA</span></div>
+          <div id="verdict" class="verdict caution">
+            <div class="verdict-mark">!</div>
+            <div class="verdict-copy"><span>PLAIN-LANGUAGE VERDICT</span><h3 id="verdictTitle">Promising return, but not safe to deploy</h3><p id="verdictBody">The result relies on a few trades and drawdown is above your risk guardrail.</p></div>
+            <div class="verdict-action"><span>NEXT BEST ACTION</span><b id="nextAction">Test the volatility guardrail</b></div>
+          </div>
           <div class="metrics">
             <article><span>Net return</span><strong id="netReturn">+12.8%</strong><small id="netDelta">training period</small></article>
             <article><span>Max drawdown</span><strong id="drawdown">−28.4%</strong><small>lower is better</small></article>
@@ -59,7 +64,17 @@
 
         <div class="panel skills-panel" id="methodology">
           <div class="panel-head"><div><span class="step">03</span><h2>Evaluation skills</h2></div><span class="method-count">7 deterministic checks</span></div>
+          <div class="result-nav" role="tablist" aria-label="Filter evaluation results">
+            <button class="selected" data-filter="attention">Needs attention <b id="attentionCount">5</b></button>
+            <button data-filter="all">All checks <b>7</b></button>
+            <button data-filter="passed">Passed <b id="passedCount">2</b></button>
+          </div>
           <div id="skills" class="skills"></div>
+          <div id="skillDetail" class="skill-detail">
+            <div><span id="detailSeverity" class="status fail">HIGH RISK</span><h3 id="detailTitle">Risk profile</h3></div>
+            <p id="detailFinding">Maximum drawdown is above the 20% product guardrail.</p>
+            <dl><div><dt>Evidence</dt><dd id="detailEvidence">Peak $142 → trough $102 · 7 consecutive losses</dd></div><div><dt>Method</dt><dd id="detailMethod">Peak-to-trough drawdown · Skill v1.0</dd></div></dl>
+          </div>
         </div>
       </section>
     </section>

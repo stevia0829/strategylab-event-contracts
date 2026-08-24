@@ -314,7 +314,7 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 | Strategy IR preview | Done, prototype |
 | Simulated metrics and Skills | Done, placeholder logic |
 | Candidate holdout interaction | Done, deterministic demo |
-| Result progressive disclosure | Next |
+| Result progressive disclosure | Done, prototype |
 | TypeScript application framework | Not started |
 | Persistent version/experiment store | Not started |
 | Agent Memory store and retrieval | Not started |
@@ -342,3 +342,25 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 - 2026-08-24: Add structured Agent Memory while forbidding memory from self-validating a strategy.
 - 2026-08-24: Keep testnet and dry-run as the only hackathon deployment targets.
 
+## 14. Open-source component shortlist
+
+Use these after migrating the prototype to React/TypeScript. Do not add a library unless the corresponding feature is implemented.
+
+| Need | Recommended component | License | Decision |
+|---|---|---|---|
+| Low-code condition rows | `react-querybuilder` | MIT | Adopt; customize fields/operators and compile its tree to Strategy IR |
+| Analysis charts | `recharts` | MIT | Adopt for equity, drawdown, regime and calibration charts |
+| Large evidence tables | `@tanstack/react-table` | MIT | Adopt when real trade/Skill evidence is available |
+| Strategy IR Diff/Patch | `jsondiffpatch` | MIT | Adopt for structured version comparison and reversible patches |
+| Version lineage graph | `@xyflow/react` | MIT | Optional P1; use only for experiment lineage, never the primary low-code form |
+| Guided demo tour | `react-joyride` | MIT | Optional near submission freeze; keep the flow usable without it |
+
+Apache ECharts is a strong alternative if parameter heatmaps and linked interactions become central. Do not ship both Recharts and ECharts in the hackathon bundle.
+
+Component constraints:
+
+- Map query-builder rules into our own Strategy IR; never let a UI library become the domain model.
+- Keep all Skill calculations outside chart components.
+- JSON Patch application must create a child strategy version and remain reviewable before execution.
+- Preserve the existing visual language instead of adopting a component library theme wholesale.
+- Record library version and license in the repository before submission.
