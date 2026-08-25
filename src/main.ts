@@ -9,8 +9,24 @@ let currentSkills: EvaluationSkill[] = [];
 let inputMode: InputMode = 'visual';
 const customIndicators: CustomIndicator[] = [];
 
-const baselineCurve = [100,101,99,103,105,102,108,112,109,115,118,113,107,110,116,121,119,124,120,126,128,123,118,121,126,129,125,132,135,131,138,142,139,144,147,143,150,146,153,156];
-const candidateCurve = [100,101,100,103,105,104,108,111,110,114,116,115,112,114,117,120,120,123,122,125,127,126,124,126,129,131,130,134,136,135,139,142,141,145,147,146,150,151,154,157];
+let baselineCurve = simulateEquityCurve(0.128, 0.28, 38);
+let candidateCurve: number[] = [];
+
+function simulateEquityCurve(targetReturn: number, volatility: number, seed: number): number[] {
+  const points = 40;
+  const raw = Array.from({length:points},(_,i)=>Math.sin((i+seed)*1.73)*.72+Math.sin((i+seed)*.47)*.38);
+  let equity=100;
+  const curve=[equity];
+  for(let i=1;i<points;i++){
+    const progress=i/(points-1);
+    const shock=raw[i]??0;
+    const regime=i>14&&i<22?-volatility*.62:0;
+    equity=100+(targetReturn*100*progress)+(shock*volatility*8)+regime*18*Math.sin((i-14)/8*Math.PI);
+    curve.push(Number(equity.toFixed(2)));
+  }
+  curve[curve.length-1]=Number((100*(1+targetReturn)).toFixed(2));
+  return curve;
+}
 
 const skillDefinitions: EvaluationSkill[] = [
   {id:'temporal-integrity', label:'Temporal integrity', detail:'No future data detected', state:'pass', evidence:'31,680 feature timestamps checked · 0 violations', method:'Point-in-time feature lineage · Skill v1.0'},
@@ -54,14 +70,15 @@ function showSkillDetail(id?: string){
 }
 
 function pathFor(values: number[]): string {
-  const min=90,max=165,w=760,h=175;
+  const combined=[...baselineCurve,...candidateCurve];const min=Math.min(...combined)-5,max=Math.max(...combined)+5,w=720,h=165;
   return values.map((v,i)=>`${i?'L':'M'} ${(i/(values.length-1)*w).toFixed(1)} ${(h-(v-min)/(max-min)*h+8).toFixed(1)}`).join(' ');
 }
 
 function drawChart(showCandidate=false){
   const svg=$('equityChart');
   const base=pathFor(baselineCurve); const cand=pathFor(candidateCurve);
-  svg.innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9e6cf" stop-opacity=".45"/><stop offset="1" stop-color="#b9e6cf" stop-opacity="0"/></linearGradient></defs>${[25,65,105,145].map(y=>`<line class="gridline" x1="0" x2="760" y1="${y}" y2="${y}"/>`).join('')}<path class="area" d="${base} L 760 190 L 0 190 Z"/><path class="baseline-line" d="${base}"/>${showCandidate?`<path class="candidate-line" d="${cand}"/>`:''}`;
+  const baseEnd=baselineCurve.at(-1)?.toFixed(1);const candEnd=candidateCurve.at(-1)?.toFixed(1);
+  svg.innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9e6cf" stop-opacity=".35"/><stop offset="1" stop-color="#b9e6cf" stop-opacity="0"/></linearGradient></defs>${[25,65,105,145].map(y=>`<line class="gridline" x1="0" x2="760" y1="${y}" y2="${y}"/>`).join('')}<path class="area" d="${base} L 720 190 L 0 190 Z"/><path class="baseline-line" d="${base}"/><circle class="baseline-dot" cx="720" cy="${base.split(' ').at(-1)}" r="4"/><text class="chart-label baseline-label" x="730" y="20">B ${baseEnd}</text>${showCandidate?`<path class="candidate-line" d="${cand}"/><circle class="candidate-dot" cx="720" cy="${cand.split(' ').at(-1)}" r="4"/><text class="chart-label candidate-label" x="730" y="36">C ${candEnd}</text>`:''}`;
 }
 
 function runBacktest(){
@@ -70,6 +87,7 @@ function runBacktest(){
   const win=direction==='UP'?55+Math.min(5,(threshold-30)/4):52+Math.min(5,(45-threshold)/5);
   const dd=Math.min(39,15+stake*.85+Math.max(0,vol-2)*2.2);
   const ret=(win-50)*1.45-stake*.08+vol*.55;
+  baselineCurve=simulateEquityCurve(ret/100,Math.min(.5,dd/100),Math.round(threshold+stake+vol));candidateCurve=[];
   $('netReturn').textContent=`${ret>=0?'+':''}${ret.toFixed(1)}%`;
   $('drawdown').textContent=`−${dd.toFixed(1)}%`;
   $('winRate').textContent=`${win.toFixed(1)}%`;
@@ -79,13 +97,14 @@ function runBacktest(){
   const sample=defs.find(s=>s.id==='minimum-sample'); if(!sample) throw new Error('minimum-sample Skill missing'); sample.state=trades>=60?'pass':'warn';sample.detail=`${trades} trades · ${trades>=60?'guardrail met':'borderline'}`;
   const risk=defs.find(s=>s.id==='risk-profile');if(!risk) throw new Error('risk-profile Skill missing');risk.state=dd<=20?'pass':'fail';risk.detail=dd<=20?'Within 20% guardrail':'Drawdown exceeds 20% guardrail';
   risk.evidence=`Calculated drawdown ${dd.toFixed(1)}% · product guardrail 20%`;
-  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();showToast('Backtest complete · 7 deterministic Skills executed');
+  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();$('candidateChartState').textContent='not run';$('candidateChartState').className='';showToast('Baseline simulation complete · Candidate has not run yet');
 }
 
 function testCandidate(){
   $('testCandidate').disabled=true;$('testCandidate').textContent='Running holdout…';
   setTimeout(()=>{
-    candidateValidated=true;drawChart(true);
+    const baselineReturn=(baselineCurve.at(-1)??100)/100-1;candidateCurve=simulateEquityCurve(Math.max(.04,baselineReturn+.07),.12,71);
+    candidateValidated=true;drawChart(true);$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='ready';
     const card=$('validationCard');card.className='validation validated';
     $('validationStatus').textContent='VALIDATED';$('validationStatus').style.background='#dcefe3';$('validationStatus').style.color='#39775e';
     $('validationTitle').textContent='Improvement confirmed';$('validationCopy').textContent='Passed all hard gates on frozen holdout 2026-07. Coverage decreased, but risk-adjusted outcome improved.';
@@ -101,6 +120,7 @@ function testCandidate(){
 function resetCandidateUI(){
   $('validationCard').className='validation locked';$('validationStatus').textContent='AWAITING TEST';$('validationStatus').removeAttribute('style');$('validationTitle').textContent='Independent validation';$('validationCopy').textContent='Candidate must pass the same seven Skills on data it has not seen.';$('compareDrawdown').textContent='—';$('compareEv').textContent='—';$('candidateVersion').className='version muted';$('versionState').textContent='PENDING';$('deployButton').disabled=true;$('testCandidate').disabled=false;$('testCandidate').textContent='Test on frozen holdout';$('readinessScore').textContent='42';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(var(--amber) 42%,#e0e1da 0)';$('readinessLabel').textContent='Sandbox only';
   $('verdict').className='verdict caution';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='!';$('verdictTitle').textContent='Promising return, but not safe to deploy';$('verdictBody').textContent='The result relies on a few trades and drawdown is above your risk guardrail.';$('nextAction').textContent='Test the volatility guardrail';
+  $('candidateChartState').textContent='not run';$('candidateChartState').className='';
 }
 
 function showToast(message: string){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
