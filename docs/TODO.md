@@ -53,6 +53,8 @@ Already available:
 - [x] Skill filtering and deterministic demo flow.
 - [x] Agent Memory brief and candidate/holdout interaction prototype.
 - [x] Experiment lineage and gated deployment interaction.
+- [x] Four-stage Define → Diagnose → Improve → Deploy navigation prototype.
+- [x] Co-located Agent proposal, Candidate validation and clearly labeled comparison chart.
 - [x] Product spec, compliance review, README, and Codex handoff instructions.
 
 Still simulated:
@@ -478,3 +480,4 @@ Append milestone-level updates only; detailed history remains in Git.
 | 2026-08-24 | Expanded indicators, Python/custom input and Agent UI | `60bafd5` |
 | 2026-08-24 | Initial Vite + TypeScript migration | `ccab9bd` |
 | 2026-08-24 | Architecture, features and progress README | `e994a69` |
+| 2026-08-25 | Four-stage workflow and Candidate validation UX | pending commit |

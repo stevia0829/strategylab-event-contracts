@@ -25,6 +25,13 @@
       </div>
     </section>
 
+    <nav class="workflow-stepper" aria-label="Strategy validation workflow">
+      <button class="complete" data-workflow="define"><span>1</span><b>Define</b><small>Strategy ready</small></button><i></i>
+      <button class="active" data-workflow="diagnose"><span>2</span><b>Diagnose</b><small>Review evidence</small></button><i></i>
+      <button data-workflow="improve"><span>3</span><b>Improve</b><small>Agent + validation</small></button><i></i>
+      <button data-workflow="deploy"><span>4</span><b>Deploy</b><small>Testnet dry-run</small></button>
+    </nav>
+
     <section class="workspace-grid">
       <aside class="panel builder">
         <div class="panel-head"><div><span class="step">01</span><h2>Define strategy</h2></div><span class="tag">2 INPUT MODES</span></div>
@@ -73,7 +80,7 @@
           <div id="verdict" class="verdict caution">
             <div class="verdict-mark">!</div>
             <div class="verdict-copy"><span>PLAIN-LANGUAGE VERDICT</span><h3 id="verdictTitle">Promising return, but not safe to deploy</h3><p id="verdictBody">The result relies on a few trades and drawdown is above your risk guardrail.</p></div>
-            <div class="verdict-action"><span>NEXT BEST ACTION</span><b id="nextAction">Test the volatility guardrail</b></div>
+            <div class="verdict-action"><span>NEXT BEST ACTION</span><button id="reviewImprovement" class="inline-action">Review Agent improvement →</button></div>
           </div>
           <div class="metrics">
             <article><span>Net return</span><strong id="netReturn">+12.8%</strong><small id="netDelta">training period</small></article>
@@ -81,14 +88,11 @@
             <article><span>Win rate</span><strong id="winRate">58.2%</strong><small id="tradeCount">67 trades</small></article>
             <article><span>Profit factor</span><strong id="profitFactor">1.31</strong><small>gross win / loss</small></article>
           </div>
-          <div class="chart-wrap">
-            <div class="chart-head"><span>Equity curve · deterministic simulation</span><div><i class="baseline"></i> Current strategy · v1 <span id="candidateLegend" class="candidate-legend pending"><i class="candidate"></i><b id="candidateLegendText">Suggested candidate · v2</b><em id="candidateChartState">not tested</em></span></div></div>
-            <svg id="equityChart" viewBox="0 0 760 190" preserveAspectRatio="none" aria-label="Equity curve"></svg>
-          </div>
         </div>
 
         <div class="panel skills-panel" id="methodology">
-          <div class="panel-head"><div><span class="step">03</span><h2>Evaluation skills</h2></div><span class="method-count">7 deterministic checks</span></div>
+          <div class="panel-head"><div><span class="step">02</span><h2>Why it is blocked</h2></div><button id="toggleSkills" class="text-button">Hide full Skill report ↑</button></div>
+          <div id="skillsBody">
           <div class="result-nav" role="tablist" aria-label="Filter evaluation results">
             <button class="selected" data-filter="attention">Needs attention <b id="attentionCount">5</b></button>
             <button data-filter="all">All checks <b>7</b></button>
@@ -100,12 +104,13 @@
             <p id="detailFinding">Maximum drawdown is above the 20% product guardrail.</p>
             <dl><div><dt>Evidence</dt><dd id="detailEvidence">Peak $142 → trough $102 · 7 consecutive losses</dd></div><div><dt>Method</dt><dd id="detailMethod">Peak-to-trough drawdown · Skill v1.0</dd></div></dl>
           </div>
+          </div>
         </div>
       </section>
     </section>
 
-    <section class="panel coach">
-      <div class="panel-head"><div><span class="step">04</span><h2>Evidence-based Coach</h2></div><span class="tag violet">2 CANDIDATES</span></div>
+    <section id="improveWorkspace" class="panel coach hidden">
+      <div class="panel-head"><div><span class="step">03</span><h2>Improve & validate</h2></div><span class="tag violet">AGENT PROPOSAL · HUMAN APPROVAL</span></div>
       <div class="agent-brief">
         <div class="agent-avatar">A</div><div><span>STRATEGY AGENT · MEMORY-AWARE</span><h3>I found 4 related experiments</h3><p>Three similar BTC 15m RSI strategies improved after adding a volatility guardrail; one was rejected because coverage fell too far. Historical evidence ranks this candidate, but cannot validate it.</p></div>
         <button id="showMemories" class="text-button">Inspect memories →</button>
@@ -122,7 +127,7 @@
           <h3>Add a volatility guardrail</h3>
           <p>Avoid contracts when 20-window volatility exceeds <b id="suggestedVol">2.9%</b>. This targets the failed regime without changing the entry signal.</p>
           <div class="tradeoff"><span>Expected trade-off</span><b>Coverage −18% · Drawdown ↓</b></div>
-          <button id="testCandidate" class="secondary">Test on frozen holdout</button>
+          <button id="testCandidate" class="secondary">Validate candidate on unseen data</button>
         </article>
         <article id="validationCard" class="validation locked">
           <div class="lock">↗</div>
@@ -132,16 +137,21 @@
           <div class="comparison"><div><span>Drawdown</span><b id="compareDrawdown">—</b></div><div><span>Expected value</span><b id="compareEv">—</b></div></div>
         </article>
       </div>
+      <div class="chart-wrap comparison-chart">
+        <div class="chart-head"><span>Same frozen dataset · deterministic simulation</span><div><i class="baseline"></i> Current strategy · v1 <span id="candidateLegend" class="candidate-legend hidden"><i class="candidate"></i><b id="candidateLegendText">Validated candidate · v2</b><em id="candidateChartState">holdout complete</em></span></div></div>
+        <svg id="equityChart" viewBox="0 0 760 190" preserveAspectRatio="none" aria-label="Current strategy and validated candidate equity curves"></svg>
+        <p id="chartExplanation" class="chart-explanation">Only the current strategy is shown. The green candidate curve appears after independent holdout validation.</p>
+      </div>
     </section>
 
-    <section class="panel lineage">
-      <div class="panel-head"><div><span class="step">05</span><h2>Experiment lineage</h2></div><button id="resetDemo" class="text-button">Reset demo</button></div>
-      <div class="version-flow">
+    <section class="panel lineage secondary-section">
+      <div class="panel-head"><div><span class="step">04</span><h2>Deploy & history</h2></div><div><button id="toggleLineage" class="text-button">Show version history ↓</button><button id="resetDemo" class="text-button">Reset demo</button></div></div>
+      <div id="lineageBody" class="version-flow hidden">
         <article class="version active"><span>v1</span><div><b>RSI reversal</b><small>Baseline · 7 skills executed</small></div><em>ACTIVE</em></article>
         <div class="branch">→</div>
         <article id="candidateVersion" class="version muted"><span>v2</span><div><b>Volatility guardrail</b><small>AI candidate · frozen holdout</small></div><em id="versionState">PENDING</em></article>
         <div class="branch">→</div>
-        <button id="deployButton" class="deploy" disabled><span>Deploy</span><small>DreamDEX testnet</small></button>
+        <button id="deployButton" class="deploy" disabled><span>Review testnet order</span><small>Locked until validation</small></button>
       </div>
     </section>
   </main>

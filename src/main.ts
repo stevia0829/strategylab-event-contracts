@@ -12,6 +12,22 @@ const customIndicators: CustomIndicator[] = [];
 let baselineCurve = simulateEquityCurve(0.128, 0.28, 38);
 let candidateCurve: number[] = [];
 
+function setWorkflow(stage: 'diagnose'|'improve'|'deploy') {
+  const order=['define','diagnose','improve','deploy'];
+  const current=order.indexOf(stage);
+  document.querySelectorAll<HTMLElement>('[data-workflow]').forEach((step)=>{
+    const index=order.indexOf(step.dataset.workflow||'');
+    step.classList.toggle('active',index===current);
+    step.classList.toggle('complete',index<current);
+  });
+}
+
+function revealImprovement() {
+  $('improveWorkspace').classList.remove('hidden');
+  setWorkflow('improve');
+  $('improveWorkspace').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function simulateEquityCurve(targetReturn: number, volatility: number, seed: number): number[] {
   const points = 40;
   const raw = Array.from({length:points},(_,i)=>Math.sin((i+seed)*1.73)*.72+Math.sin((i+seed)*.47)*.38);
@@ -97,7 +113,7 @@ function runBacktest(){
   const sample=defs.find(s=>s.id==='minimum-sample'); if(!sample) throw new Error('minimum-sample Skill missing'); sample.state=trades>=60?'pass':'warn';sample.detail=`${trades} trades · ${trades>=60?'guardrail met':'borderline'}`;
   const risk=defs.find(s=>s.id==='risk-profile');if(!risk) throw new Error('risk-profile Skill missing');risk.state=dd<=20?'pass':'fail';risk.detail=dd<=20?'Within 20% guardrail':'Drawdown exceeds 20% guardrail';
   risk.evidence=`Calculated drawdown ${dd.toFixed(1)}% · product guardrail 20%`;
-  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();showToast('Current strategy complete · Candidate has not been tested');
+  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();$('improveWorkspace').classList.add('hidden');showToast('Current strategy complete · Review the diagnosis before creating a Candidate');
 }
 
 function testCandidate(){
@@ -109,18 +125,19 @@ function testCandidate(){
     $('validationStatus').textContent='VALIDATED';$('validationStatus').style.background='#dcefe3';$('validationStatus').style.color='#39775e';
     $('validationTitle').textContent='Improvement confirmed';$('validationCopy').textContent='Passed all hard gates on frozen holdout 2026-07. Coverage decreased, but risk-adjusted outcome improved.';
     $('compareDrawdown').textContent='28.4 → 17.1%';$('compareEv').textContent='$0.18 → $0.24';
-    $('candidateVersion').className='version validated';$('versionState').textContent='VALIDATED';$('deployButton').disabled=false;
+    $('candidateVersion').className='version validated';$('versionState').textContent='VALIDATED';$('deployButton').disabled=false;$('deployButton').querySelector('small').textContent='DreamDEX testnet · dry-run';
     $('readinessScore').textContent='82';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(#54b88a 82%, #e0e1da 0)';$('readinessLabel').textContent='Testnet ready';
     $('verdict').className='verdict positive';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='✓';
-    $('verdictTitle').textContent='Improvement validated on unseen data';$('verdictBody').textContent='Risk decreased without breaking evidence or execution gates. Lower coverage remains visible as a trade-off.';$('nextAction').textContent='Start a testnet dry-run';
-    $('testCandidate').textContent='Validated on holdout';showToast('Candidate validated · Testnet deployment unlocked');
+    $('verdictTitle').textContent='Improvement validated on unseen data';$('verdictBody').textContent='Risk decreased without breaking evidence or execution gates. Lower coverage remains visible as a trade-off.';$('reviewImprovement').textContent='Review testnet order →';
+    $('chartExplanation').textContent='Black = current strategy (v1). Green dashed = validated candidate (v2). Both use the same frozen holdout; endpoint labels show final equity.';
+    $('testCandidate').textContent='Validation complete ✓';setWorkflow('deploy');showToast('Candidate validated · Testnet dry-run unlocked');
   },900);
 }
 
 function resetCandidateUI(){
-  $('validationCard').className='validation locked';$('validationStatus').textContent='AWAITING TEST';$('validationStatus').removeAttribute('style');$('validationTitle').textContent='Independent validation';$('validationCopy').textContent='Candidate must pass the same seven Skills on data it has not seen.';$('compareDrawdown').textContent='—';$('compareEv').textContent='—';$('candidateVersion').className='version muted';$('versionState').textContent='PENDING';$('deployButton').disabled=true;$('testCandidate').disabled=false;$('testCandidate').textContent='Test on frozen holdout';$('readinessScore').textContent='42';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(var(--amber) 42%,#e0e1da 0)';$('readinessLabel').textContent='Sandbox only';
-  $('verdict').className='verdict caution';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='!';$('verdictTitle').textContent='Promising return, but not safe to deploy';$('verdictBody').textContent='The result relies on a few trades and drawdown is above your risk guardrail.';$('nextAction').textContent='Test the volatility guardrail';
-  $('candidateLegend').className='candidate-legend pending';$('candidateLegendText').textContent='Suggested candidate · v2';$('candidateChartState').textContent='not tested';$('candidateChartState').className='';
+  $('validationCard').className='validation locked';$('validationStatus').textContent='AWAITING TEST';$('validationStatus').removeAttribute('style');$('validationTitle').textContent='Independent validation';$('validationCopy').textContent='Candidate must pass the same seven Skills on data it has not seen.';$('compareDrawdown').textContent='—';$('compareEv').textContent='—';$('candidateVersion').className='version muted';$('versionState').textContent='PENDING';$('deployButton').disabled=true;$('deployButton').querySelector('small').textContent='Locked until validation';$('testCandidate').disabled=false;$('testCandidate').textContent='Validate candidate on unseen data';$('readinessScore').textContent='42';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(var(--amber) 42%,#e0e1da 0)';$('readinessLabel').textContent='Sandbox only';
+  $('verdict').className='verdict caution';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='!';$('verdictTitle').textContent='Promising return, but not safe to deploy';$('verdictBody').textContent='The result relies on a few trades and drawdown is above your risk guardrail.';$('reviewImprovement').textContent='Review Agent improvement →';
+  $('candidateLegend').className='candidate-legend hidden';$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='';$('chartExplanation').textContent='Only the current strategy is shown. The green candidate curve appears after independent holdout validation.';setWorkflow('diagnose');
 }
 
 function showToast(message: string){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
@@ -145,12 +162,15 @@ $('saveIndicator').addEventListener('click',()=>{
 $('validatePython').addEventListener('click',()=>{const code=$('pythonCode').value;const valid=code.includes('class Strategy')&&code.includes('def decide')&&!/(import\s+(os|sys|socket|subprocess)|open\s*\()/m.test(code);$('pythonValidation').textContent=valid?'Contract valid · Ready for isolated backtest':'Validation failed · Use Strategy.decide and allowed context only';$('pythonValidation').className=`python-validation ${valid?'pass':''}`;showToast(valid?'Python contract passed static validation':'Python contract needs attention')});
 $('showMemories').addEventListener('click',()=>{const el=document.querySelector<HTMLElement>('.agent-brief');if(!el)return;el.classList.remove('memory-highlight');void el.offsetWidth;el.classList.add('memory-highlight');showToast('4 memories · 3 validated · 1 rejected · current match 87%')});
 $('runButton').addEventListener('click',runBacktest);
+$('reviewImprovement').addEventListener('click',()=>candidateValidated?($('lineageBody').classList.remove('hidden'),$('lineageBody').scrollIntoView({behavior:'smooth',block:'center'})):revealImprovement());
 $('testCandidate').addEventListener('click',testCandidate);
+$('toggleSkills').addEventListener('click',()=>{const hidden=$('skillsBody').classList.toggle('hidden');$('toggleSkills').textContent=hidden?'Show full Skill report ↓':'Hide full Skill report ↑'});
+$('toggleLineage').addEventListener('click',()=>{const hidden=$('lineageBody').classList.toggle('hidden');$('toggleLineage').textContent=hidden?'Show version history ↓':'Hide version history ↑'});
 $('viewIr').addEventListener('click',()=>{$('irOutput').textContent=JSON.stringify(strategyIR(),null,2);$('irDialog').showModal()});
 $('closeDialog').addEventListener('click',()=>$('irDialog').close());
 $('copyIr').addEventListener('click',async()=>{await navigator.clipboard.writeText($('irOutput').textContent);showToast('Strategy IR copied')});
 $('deployButton').addEventListener('click',()=>showToast('Dry-run created · No funds were submitted'));
-$('resetDemo').addEventListener('click',()=>{resetCandidateUI();drawChart(false);renderSkills();showToast('Demo reset to baseline')});
+$('resetDemo').addEventListener('click',()=>{resetCandidateUI();drawChart(false);renderSkills();$('improveWorkspace').classList.add('hidden');showToast('Demo reset to diagnosis')});
 document.querySelectorAll<HTMLElement>('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');activeFilter=btn.dataset.filter||'attention';renderSkills(currentSkills)}));
 document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='Enter')runBacktest()});
 renderSkills();drawChart(false);
