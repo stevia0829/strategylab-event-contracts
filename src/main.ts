@@ -78,7 +78,7 @@ function drawChart(showCandidate=false){
   const svg=$('equityChart');
   const base=pathFor(baselineCurve); const cand=pathFor(candidateCurve);
   const baseEnd=baselineCurve.at(-1)?.toFixed(1);const candEnd=candidateCurve.at(-1)?.toFixed(1);
-  svg.innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9e6cf" stop-opacity=".35"/><stop offset="1" stop-color="#b9e6cf" stop-opacity="0"/></linearGradient></defs>${[25,65,105,145].map(y=>`<line class="gridline" x1="0" x2="760" y1="${y}" y2="${y}"/>`).join('')}<path class="area" d="${base} L 720 190 L 0 190 Z"/><path class="baseline-line" d="${base}"/><circle class="baseline-dot" cx="720" cy="${base.split(' ').at(-1)}" r="4"/><text class="chart-label baseline-label" x="730" y="20">B ${baseEnd}</text>${showCandidate?`<path class="candidate-line" d="${cand}"/><circle class="candidate-dot" cx="720" cy="${cand.split(' ').at(-1)}" r="4"/><text class="chart-label candidate-label" x="730" y="36">C ${candEnd}</text>`:''}`;
+  svg.innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9e6cf" stop-opacity=".35"/><stop offset="1" stop-color="#b9e6cf" stop-opacity="0"/></linearGradient></defs>${[25,65,105,145].map(y=>`<line class="gridline" x1="0" x2="760" y1="${y}" y2="${y}"/>`).join('')}<path class="area" d="${base} L 720 190 L 0 190 Z"/><path class="baseline-line" d="${base}"/><circle class="baseline-dot" cx="720" cy="${base.split(' ').at(-1)}" r="4"/><text class="chart-label baseline-label" x="730" y="20">v1 ${baseEnd}</text>${showCandidate?`<path class="candidate-line" d="${cand}"/><circle class="candidate-dot" cx="720" cy="${cand.split(' ').at(-1)}" r="4"/><text class="chart-label candidate-label" x="730" y="36">v2 ${candEnd}</text>`:''}`;
 }
 
 function runBacktest(){
@@ -97,14 +97,14 @@ function runBacktest(){
   const sample=defs.find(s=>s.id==='minimum-sample'); if(!sample) throw new Error('minimum-sample Skill missing'); sample.state=trades>=60?'pass':'warn';sample.detail=`${trades} trades · ${trades>=60?'guardrail met':'borderline'}`;
   const risk=defs.find(s=>s.id==='risk-profile');if(!risk) throw new Error('risk-profile Skill missing');risk.state=dd<=20?'pass':'fail';risk.detail=dd<=20?'Within 20% guardrail':'Drawdown exceeds 20% guardrail';
   risk.evidence=`Calculated drawdown ${dd.toFixed(1)}% · product guardrail 20%`;
-  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();$('candidateChartState').textContent='not run';$('candidateChartState').className='';showToast('Baseline simulation complete · Candidate has not run yet');
+  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();showToast('Current strategy complete · Candidate has not been tested');
 }
 
 function testCandidate(){
   $('testCandidate').disabled=true;$('testCandidate').textContent='Running holdout…';
   setTimeout(()=>{
     const baselineReturn=(baselineCurve.at(-1)??100)/100-1;candidateCurve=simulateEquityCurve(Math.max(.04,baselineReturn+.07),.12,71);
-    candidateValidated=true;drawChart(true);$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='ready';
+    candidateValidated=true;drawChart(true);$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='ready';$('candidateLegend').className='candidate-legend ready';$('candidateLegendText').textContent='Validated candidate · v2';
     const card=$('validationCard');card.className='validation validated';
     $('validationStatus').textContent='VALIDATED';$('validationStatus').style.background='#dcefe3';$('validationStatus').style.color='#39775e';
     $('validationTitle').textContent='Improvement confirmed';$('validationCopy').textContent='Passed all hard gates on frozen holdout 2026-07. Coverage decreased, but risk-adjusted outcome improved.';
@@ -120,7 +120,7 @@ function testCandidate(){
 function resetCandidateUI(){
   $('validationCard').className='validation locked';$('validationStatus').textContent='AWAITING TEST';$('validationStatus').removeAttribute('style');$('validationTitle').textContent='Independent validation';$('validationCopy').textContent='Candidate must pass the same seven Skills on data it has not seen.';$('compareDrawdown').textContent='—';$('compareEv').textContent='—';$('candidateVersion').className='version muted';$('versionState').textContent='PENDING';$('deployButton').disabled=true;$('testCandidate').disabled=false;$('testCandidate').textContent='Test on frozen holdout';$('readinessScore').textContent='42';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(var(--amber) 42%,#e0e1da 0)';$('readinessLabel').textContent='Sandbox only';
   $('verdict').className='verdict caution';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='!';$('verdictTitle').textContent='Promising return, but not safe to deploy';$('verdictBody').textContent='The result relies on a few trades and drawdown is above your risk guardrail.';$('nextAction').textContent='Test the volatility guardrail';
-  $('candidateChartState').textContent='not run';$('candidateChartState').className='';
+  $('candidateLegend').className='candidate-legend pending';$('candidateLegendText').textContent='Suggested candidate · v2';$('candidateChartState').textContent='not tested';$('candidateChartState').className='';
 }
 
 function showToast(message: string){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
