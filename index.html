@@ -26,14 +26,14 @@
     </section>
 
     <nav class="workflow-stepper" aria-label="Strategy validation workflow">
-      <button class="complete" data-workflow="define"><span>1</span><b>Define</b><small>Strategy ready</small></button><i></i>
-      <button class="active" data-workflow="diagnose"><span>2</span><b>Diagnose</b><small>Review evidence</small></button><i></i>
+      <button class="complete" data-workflow="define"><span>1</span><b>Define</b><small>Build strategy</small></button><i></i>
+      <button class="active" data-workflow="evaluate"><span>2</span><b>Evaluate</b><small>Test the evidence</small></button><i></i>
       <button data-workflow="improve"><span>3</span><b>Improve</b><small>Agent + validation</small></button><i></i>
-      <button data-workflow="deploy"><span>4</span><b>Deploy</b><small>Testnet dry-run</small></button>
+      <button data-workflow="testnet"><span>4</span><b>Testnet</b><small>Review dry-run</small></button>
     </nav>
 
     <section class="workspace-grid">
-      <aside class="panel builder">
+      <aside id="strategyBuilder" class="panel builder">
         <div class="panel-head"><div><span class="step">01</span><h2>Define strategy</h2></div><span class="tag">2 INPUT MODES</span></div>
         <div class="mode-switch" role="tablist" aria-label="Strategy input mode"><button class="selected" data-mode="visual">Visual builder</button><button data-mode="python">Python strategy</button></div>
         <div id="visualBuilder">
@@ -70,13 +70,13 @@
           <button id="validatePython" class="secondary wide">Validate sandbox contract</button>
           <div id="pythonValidation" class="python-validation">Not validated</div>
         </div>
-        <button id="runButton" class="primary"><span>Run evidence check</span><kbd>⌘ ↵</kbd></button>
+        <button id="runButton" class="primary"><span>Evaluate current strategy</span><kbd>⌘ ↵</kbd></button>
         <button id="viewIr" class="text-button">View Strategy IR →</button>
       </aside>
 
       <section class="results">
-        <div class="panel metrics-panel">
-          <div class="panel-head"><div><span class="step">02</span><h2>Backtest evidence</h2></div><span id="dataBadge" class="tag amber">RECONSTRUCTED DATA</span></div>
+        <div id="evaluationResults" class="panel metrics-panel">
+          <div class="panel-head"><div><span class="step">02</span><h2>Strategy evaluation</h2></div><span id="dataBadge" class="tag amber">RECONSTRUCTED DATA</span></div>
           <div id="verdict" class="verdict caution">
             <div class="verdict-mark">!</div>
             <div class="verdict-copy"><span>PLAIN-LANGUAGE VERDICT</span><h3 id="verdictTitle">Promising return, but not safe to deploy</h3><p id="verdictBody">The result relies on a few trades and drawdown is above your risk guardrail.</p></div>
@@ -91,7 +91,7 @@
         </div>
 
         <div class="panel skills-panel" id="methodology">
-          <div class="panel-head"><div><span class="step">02</span><h2>Why it is blocked</h2></div><button id="toggleSkills" class="text-button">Hide full Skill report ↑</button></div>
+          <div class="panel-head"><div><span class="step">02</span><h2>Evidence checks</h2></div><button id="toggleSkills" class="text-button">Hide full Skill report ↑</button></div>
           <div id="skillsBody">
           <div class="result-nav" role="tablist" aria-label="Filter evaluation results">
             <button class="selected" data-filter="attention">Needs attention <b id="attentionCount">5</b></button>
@@ -145,7 +145,7 @@
     </section>
 
     <section class="panel lineage secondary-section">
-      <div class="panel-head"><div><span class="step">04</span><h2>Deploy & history</h2></div><div><button id="toggleLineage" class="text-button">Show version history ↓</button><button id="resetDemo" class="text-button">Reset demo</button></div></div>
+      <div class="panel-head"><div><span class="step">04</span><h2>Testnet review & history</h2></div><div><button id="toggleLineage" class="text-button">Show version history ↓</button><button id="resetDemo" class="text-button">Reset demo</button></div></div>
       <div id="lineageBody" class="version-flow hidden">
         <article class="version active"><span>v1</span><div><b>RSI reversal</b><small>Baseline · 7 skills executed</small></div><em>ACTIVE</em></article>
         <div class="branch">→</div>

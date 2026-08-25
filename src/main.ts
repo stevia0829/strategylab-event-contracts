@@ -12,8 +12,8 @@ const customIndicators: CustomIndicator[] = [];
 let baselineCurve = simulateEquityCurve(0.128, 0.28, 38);
 let candidateCurve: number[] = [];
 
-function setWorkflow(stage: 'diagnose'|'improve'|'deploy') {
-  const order=['define','diagnose','improve','deploy'];
+function setWorkflow(stage: 'define'|'evaluate'|'improve'|'testnet') {
+  const order=['define','evaluate','improve','testnet'];
   const current=order.indexOf(stage);
   document.querySelectorAll<HTMLElement>('[data-workflow]').forEach((step)=>{
     const index=order.indexOf(step.dataset.workflow||'');
@@ -113,7 +113,7 @@ function runBacktest(){
   const sample=defs.find(s=>s.id==='minimum-sample'); if(!sample) throw new Error('minimum-sample Skill missing'); sample.state=trades>=60?'pass':'warn';sample.detail=`${trades} trades · ${trades>=60?'guardrail met':'borderline'}`;
   const risk=defs.find(s=>s.id==='risk-profile');if(!risk) throw new Error('risk-profile Skill missing');risk.state=dd<=20?'pass':'fail';risk.detail=dd<=20?'Within 20% guardrail':'Drawdown exceeds 20% guardrail';
   risk.evidence=`Calculated drawdown ${dd.toFixed(1)}% · product guardrail 20%`;
-  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();$('improveWorkspace').classList.add('hidden');showToast('Current strategy complete · Review the diagnosis before creating a Candidate');
+  renderSkills(defs);drawChart(false);candidateValidated=false;resetCandidateUI();$('improveWorkspace').classList.add('hidden');$('evaluationResults').scrollIntoView({behavior:'smooth',block:'start'});showToast('Evaluation complete · Review the evidence before creating a Candidate');
 }
 
 function testCandidate(){
@@ -130,14 +130,14 @@ function testCandidate(){
     $('verdict').className='verdict positive';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='✓';
     $('verdictTitle').textContent='Improvement validated on unseen data';$('verdictBody').textContent='Risk decreased without breaking evidence or execution gates. Lower coverage remains visible as a trade-off.';$('reviewImprovement').textContent='Review testnet order →';
     $('chartExplanation').textContent='Black = current strategy (v1). Green dashed = validated candidate (v2). Both use the same frozen holdout; endpoint labels show final equity.';
-    $('testCandidate').textContent='Validation complete ✓';setWorkflow('deploy');showToast('Candidate validated · Testnet dry-run unlocked');
+    $('testCandidate').textContent='Validation complete ✓';setWorkflow('testnet');showToast('Candidate validated · Testnet dry-run unlocked');
   },900);
 }
 
 function resetCandidateUI(){
   $('validationCard').className='validation locked';$('validationStatus').textContent='AWAITING TEST';$('validationStatus').removeAttribute('style');$('validationTitle').textContent='Independent validation';$('validationCopy').textContent='Candidate must pass the same seven Skills on data it has not seen.';$('compareDrawdown').textContent='—';$('compareEv').textContent='—';$('candidateVersion').className='version muted';$('versionState').textContent='PENDING';$('deployButton').disabled=true;$('deployButton').querySelector('small').textContent='Locked until validation';$('testCandidate').disabled=false;$('testCandidate').textContent='Validate candidate on unseen data';$('readinessScore').textContent='42';(document.querySelector('.score-ring') as HTMLElement).style.background='conic-gradient(var(--amber) 42%,#e0e1da 0)';$('readinessLabel').textContent='Sandbox only';
   $('verdict').className='verdict caution';($('verdict').querySelector('.verdict-mark') as HTMLElement).textContent='!';$('verdictTitle').textContent='Promising return, but not safe to deploy';$('verdictBody').textContent='The result relies on a few trades and drawdown is above your risk guardrail.';$('reviewImprovement').textContent='Review Agent improvement →';
-  $('candidateLegend').className='candidate-legend hidden';$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='';$('chartExplanation').textContent='Only the current strategy is shown. The green candidate curve appears after independent holdout validation.';setWorkflow('diagnose');
+  $('candidateLegend').className='candidate-legend hidden';$('candidateChartState').textContent='holdout complete';$('candidateChartState').className='';$('chartExplanation').textContent='Only the current strategy is shown. The green candidate curve appears after independent holdout validation.';setWorkflow('evaluate');
 }
 
 function showToast(message: string){const t=$('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
@@ -162,6 +162,13 @@ $('saveIndicator').addEventListener('click',()=>{
 $('validatePython').addEventListener('click',()=>{const code=$('pythonCode').value;const valid=code.includes('class Strategy')&&code.includes('def decide')&&!/(import\s+(os|sys|socket|subprocess)|open\s*\()/m.test(code);$('pythonValidation').textContent=valid?'Contract valid · Ready for isolated backtest':'Validation failed · Use Strategy.decide and allowed context only';$('pythonValidation').className=`python-validation ${valid?'pass':''}`;showToast(valid?'Python contract passed static validation':'Python contract needs attention')});
 $('showMemories').addEventListener('click',()=>{const el=document.querySelector<HTMLElement>('.agent-brief');if(!el)return;el.classList.remove('memory-highlight');void el.offsetWidth;el.classList.add('memory-highlight');showToast('4 memories · 3 validated · 1 rejected · current match 87%')});
 $('runButton').addEventListener('click',runBacktest);
+document.querySelectorAll<HTMLElement>('[data-workflow]').forEach(step=>step.addEventListener('click',()=>{
+  const target=step.dataset.workflow;
+  if(target==='define'){$('strategyBuilder').scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(target==='evaluate'){$('evaluationResults').scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(target==='improve'){if($('improveWorkspace').classList.contains('hidden'))revealImprovement();else $('improveWorkspace').scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(candidateValidated){$('lineageBody').classList.remove('hidden');$('lineageBody').scrollIntoView({behavior:'smooth',block:'center'})}else showToast('Validate a Candidate before opening the testnet review');
+}));
 $('reviewImprovement').addEventListener('click',()=>candidateValidated?($('lineageBody').classList.remove('hidden'),$('lineageBody').scrollIntoView({behavior:'smooth',block:'center'})):revealImprovement());
 $('testCandidate').addEventListener('click',testCandidate);
 $('toggleSkills').addEventListener('click',()=>{const hidden=$('skillsBody').classList.toggle('hidden');$('toggleSkills').textContent=hidden?'Show full Skill report ↓':'Hide full Skill report ↑'});

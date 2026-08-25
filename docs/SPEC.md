@@ -66,9 +66,9 @@ The MVP does not use a free-form drag canvas. Strategy IR and methodology are av
 The page behaves as a four-stage stateful workflow, not a vertically stacked report:
 
 1. **Define** — compose the strategy and run the current version.
-2. **Diagnose** — read the plain-language verdict, core metrics, failed Skills and one primary next action.
+2. **Evaluate** — backtest the current strategy, then read the verdict, core metrics, failed Skills and one primary next action.
 3. **Improve** — review the Agent Brief, evidence-linked Candidate, expected trade-off and independent validation in one workspace.
-4. **Deploy** — review version history and create a DreamDEX testnet dry-run only after validation passes.
+4. **Testnet** — review version history and create a DreamDEX testnet dry-run only after validation passes. The prototype does not call this stage “Deploy” because no real transaction is currently broadcast.
 
 The Candidate does not appear in the comparison legend before it has been independently tested. Before validation, the chart explicitly shows only the current strategy. After validation, black represents the current strategy and green dashed represents the validated Candidate on the same frozen dataset. Full Skill details and version lineage are secondary, collapsible content. Each stage has one primary CTA.
 
@@ -477,7 +477,7 @@ A validated candidate creates a dry-run preview, submits through a dedicated Sha
 - 2026-08-24: Make deterministic Skills and independent validation the trust boundary.
 - 2026-08-24: Add structured Agent Memory while forbidding memory from self-validating a strategy.
 - 2026-08-24: Keep testnet and dry-run as the only hackathon deployment targets.
-- 2026-08-25: Use a four-stage Define → Diagnose → Improve → Deploy workflow; keep Agent proposal, Candidate validation and comparison in one workspace.
+- 2026-08-25: Use a four-stage Define → Evaluate → Improve → Testnet workflow; keep Agent proposal, Candidate validation and comparison in one workspace.
 - 2026-08-25: Hide Candidate chart legend until a holdout result exists; never imply an untested Candidate has a curve.
 
 ## 14. Open-source component shortlist

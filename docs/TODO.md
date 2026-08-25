@@ -53,7 +53,7 @@ Already available:
 - [x] Skill filtering and deterministic demo flow.
 - [x] Agent Memory brief and candidate/holdout interaction prototype.
 - [x] Experiment lineage and gated deployment interaction.
-- [x] Four-stage Define → Diagnose → Improve → Deploy navigation prototype.
+- [x] Four-stage Define → Evaluate → Improve → Testnet navigation prototype.
 - [x] Co-located Agent proposal, Candidate validation and clearly labeled comparison chart.
 - [x] Product spec, compliance review, README, and Codex handoff instructions.
 
